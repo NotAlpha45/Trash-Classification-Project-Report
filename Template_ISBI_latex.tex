@@ -24,8 +24,8 @@
 % Single address.
 % ---------------
 \name{Maheen Hoque,$^{1}$ Dipu Khan,$^{1}$ Lila Sanjay Kumar Gorlie$^{1}$}
-\address{$^{1}$Master of Engineering Graduate Program, $^{2}$Electrical and Software Engineering, \\
- University of Calgary, Calgary, AB, CANADA}
+\address{$^{1}$Master of Engineering Graduate Program, Electrical and Software Engineering, \\
+ University of Calgary, Calgary, AB, Canada}
 %
 % For example:
 % ------------
@@ -61,7 +61,8 @@
 \maketitle
 %
 \begin{abstract}
-With the increasing use of multimodal learning in classification tasks, important questions arise regarding the effectiveness of traditional inference-based models versus retrieval-augmented approaches. In particular, combining image and text modalities introduces challenges in achieving both accuracy and robustness. In this work, we compare supervised multimodal models with retrieval-augmented classification using vector-based heuristics for four-class garbage classification. While supervised fusion models provide strong baseline performance, retrieval-based methods, especially density-aware approaches, show improved robustness and better performance under class imbalance and limited memory conditions.
+
+With the increasing use of multimodal data and specialized models for classification tasks, important questions arise regarding the effectiveness of traditional inference-based models versus retrieval-augmented approaches. In particular, combining image and text modalities introduces challenges in achieving both accuracy and robustness, especially when it comes to data skewness and domain drift (and additional training resource cost when comparing with ). In this work, we compare supervised multimodal models with retrieval-augmented classification using 3 novel vector-based heuristics for four-class garbage classification problem. Through our various experiments, we found that, while supervised fusion models provide strong baseline performance and inference velocity, retrieval-based methods, especially density-aware approaches, show improved robustness and better performance (upto 3.41\% in F1 Score, without any additional tuning) under severe class imbalance and limited memory conditions.
 
 \end{abstract}
 %
@@ -69,15 +70,17 @@ With the increasing use of multimodal learning in classification tasks, importan
 Multimodal Lerning, Garbage Classification, Retrieval-Augmented Classification, Vector Heuristics, Deep Learning.
 \end{keywords}
 %
+
 \section{Introduction}
 \label{sec:intro}
+
 Deep learning (DL) models have gained significant attention in multimodal classification due to their ability to learn from heterogeneous data sources such as images and text. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems. A common strategy is combine predictions from image and text models using fusion techniques such as weighted logic aggregation, enabling improved accuracy and generalization. However, these supervised approaches rely entirely on learned representations and may face limitations under challenging conditions such as class imbalance or limited training data.
 
 An alternative approach is retrieval-augmented classification, which utilizes embedding-based memory to retrieve similar instance and make predictions based on neighborhood evidence. This allows the model to incorporate additional contextual information beyond the training distribution but introduces challenges in retrieval design and scoring. Despite increasing interest in such methods, a systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In this work, a two-phase framework is presented to evaluate both strategies for multimodal garbage classification, with experiments conducted under standard settings, class imbalance, and varying memory size to analyze performance, robustness, and generalization.
 
 \begin{figure}[htb]
 \centering
-\centerline{\includegraphics[width=\linewidth]{Classification.png}}
+\centerline{\includegraphics[width=\linewidth]{images/Classification.png}}
 \caption{Sample images from the training dataset across four classes- Black, Blue, Green, and TTR-demonstrating the diversity of objects and visual variations within each category.}
 \label{fig:classification}
 \end{figure}
@@ -151,35 +154,35 @@ To evaluate robustness, controlled imbalance experiments were conducted by reduc
 
 \begin{figure}[htb]
 \centering
-\centerline{\includegraphics[width=\linewidth]{phase 1 vs 2.png}}
+\centerline{\includegraphics[width=\linewidth]{images/phase 1 vs 2.png}}
 \caption{Comparison of Phase 1(supervised fusion) and Phase 2(retieval-augmented classification), showing improvement in macro F1 score.}
 \label{fig:phase}
 \end{figure}
 
 \begin{figure}
 \centering
-\centerline{\includegraphics[width=\linewidth]{Macro F1 scoreing variant.png}}
+\centerline{\includegraphics[width=\linewidth]{images/Macro F1 scoreing variant.png}}
 \caption{Macro F1 score cmparison across different scroing variants, highlighting the effectiveness of density-aware methods.}
 \label{fig:macro_variant}
 \end{figure}
 
 \begin{figure}
 \centering
-\centerline{\includegraphics[width=\linewidth]{confusion matrix.png}}
+\centerline{\includegraphics[width=\linewidth]{images/confusion matrix.png}}
 \caption{Confusion matrices for different scoring methods, illustrating classification performance across all classes.}
 \label{fig:confusion}
 \end{figure}
 
 \begin{figure}
 \centering
-\centerline{\includegraphics[width=\linewidth]{imbalance.png}}
+\centerline{\includegraphics[width=\linewidth]{images/imbalance.png}}
 \caption{Class-wise F1 score under increasing imbalance ratios, demonstrating improved robustness of density-aware methods.}
 \label{fig:imbalance}
 \end{figure}
 
 \begin{figure}
 \centering
-\centerline{\includegraphics[width=\linewidth]{learning curve.png}}
+\centerline{\includegraphics[width=\linewidth]{images/learning curve.png}}
 \caption{Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory.}
 \label{fig:learning}
 \end{figure}
