@@ -67,7 +67,7 @@ With the increasing use of multimodal data and specialized models for classifica
 \end{abstract}
 %
 \begin{keywords}
-Multimodal Lerning, Garbage Classification, Retrieval-Augmented Classification, Vector Heuristics, Deep Learning.
+Multimodal Lerning, Garbage Classification, RAC (Retrieval-Augmented Classification), Vector Heuristics, DNDS (Density Normalized Distance Score), Deep Learning.
 \end{keywords}
 %
 
@@ -78,7 +78,16 @@ Garbage classification is an intriguing field that offers a good opportunity for
 
 Deep learning (DL) models have been a popular choice in multimodal classification due to their ability to learn from heterogeneous data sources such as images and text and being more adaptable for complex patterns than traditional machine learning models. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems. A common strategy is combine predictions from image and text models using fusion techniques such as weighted logic aggregation, enabling improved accuracy and generalization. However, these supervised approaches rely entirely on learned representations and may face limitations under challenging conditions such as class imbalance, limited training data or domain drift. Those conditions often require rigorous training, normalization, complex feature engineering, augmentation, or re-training an existing model - which means a penalty of computational resources on top of an already extensive dataset required for these models to work properly \cite{islam2026learning} \cite{alexakis2025enhanced}.
 
-An alternative approach is retrieval-augmented classification, which utilizes embedding-based memory to retrieve similar instance and make predictions based on neighborhood evidence. This allows the model to incorporate additional contextual information beyond the training distribution but introduces challenges in retrieval design and scoring. Despite increasing interest in such methods, a systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In our work, a two-phase framework is presented to evaluate both strategies for multimodal garbage classification, with experiments conducted under standard settings, class imbalance, and varying memory size to analyze performance, robustness, and generalization.
+An alternative approach is retrieval-augmented classification (RAC), which utilizes embedding-based memory to retrieve similar instance and make predictions based on neighborhood evidence. This allows the model to incorporate additional contextual information beyond the training distribution but introduces challenges in retrieval design and scoring. Despite increasing interest in such methods, a systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In our work, a two-phase framework is presented to evaluate both strategies for multimodal garbage classification, with experiments conducted under standard settings, class imbalance, and varying memory size to analyze performance, robustness, and generalization. Implemented with modern vector databases like Chroma, Pinecone, LanceDB, and PGVector - RAC only has a storage overhead, which is much cheaper than memory in terms of hardware price. 
+
+But more importantly, to address the challenges in retrieval design and scoring, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain drift by taking into account class distributions in various ways. This DNDS has 3 variants that we studied in this work - Global DNDS (takes the entire database into account for class imbalance), Local DNDS (takes into account a local region of a query for class imbalance), and KDE DNDS (Uses Gaussian kernel density estimation for accounting ``instance contribution" for class imbalance). This DNDS heuristic is dynamic (works well even with continuously increasing database size), designed to work with cosine distances with high-dimensional vector embedding, and corrects itself for class skewness. Throughout this study, we focused more over evaluating these 3 variants of the DNDS heuristic, with a traditional deep learning approach involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQ), that we tried to answer in this study is as follows:     
+
+\begin{itemize}
+  \item \textbf{RQ 1}: Does DNDS have better performance compared to traditional methods for classification? 
+  \item \textbf{RQ 2}: How robust is DNDS against severe class imbalance?
+  \item \textbf{RQ 3}: Can DNDS maintain it's performance with increasing database size?
+  \item \textbf{RQ 4}: Which DNDS variant is the most effective overall?
+\end{itemize}
 
 \begin{figure}[htb]
 \centering
