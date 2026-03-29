@@ -81,7 +81,7 @@ Garbage classification is an intriguing field that offers a good opportunity for
 
 An alternative approach is retrieval-augmented classification (RAC), which utilizes embedding-based memory to retrieve similar instance and make predictions based on neighborhood evidence. This allows the model to incorporate additional contextual information beyond the training distribution but introduces challenges in retrieval design and scoring. Despite increasing interest in such methods, a systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In our work, a two-phase framework is presented to evaluate both strategies for multimodal garbage classification, with experiments conducted under standard settings, class imbalance, and varying memory size to analyze performance, robustness, and generalization. Implemented with modern vector databases like Chroma, Pinecone, LanceDB, and PGVector - RAC only has a storage overhead, which is much cheaper than memory in terms of hardware price. 
 
-To address the challenges in retrieval design and scoring, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain drift by taking into account class distributions in various ways. This DNDS has 3 variants (which ultimately makes it 3 heuristics) that we studied in this work - Global DNDS (takes the entire database into account for class imbalance), Local DNDS (takes into account a local region of a query for class imbalance), and KDE DNDS (Uses Gaussian kernel density estimation for accounting ``instance contribution" for class imbalance). This DNDS heuristic is dynamic (works well even with continuously increasing database size), designed to work with cosine distances with high-dimensional vector embedding, and corrects itself for class skewness. Throughout this study, we focused more over evaluating these 3 variants of the DNDS heuristic, with a traditional deep learning approach involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQ), that we tried to answer in this study is as follows:  
+To address the challenges in retrieval design and scoring, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain drift by taking into account class distributions in various ways. This DNDS has 3 variants (which ultimately makes it 3 heuristics) that we studied in this work - Global DNDS, Local DNDS, and KDE DNDS (The details of which are discussed in \autoref{sec:methodology}). This DNDS heuristic is dynamic (works well even with continuously increasing database size), designed to work with cosine distances with high-dimensional vector embedding, and corrects itself for class skewness. Throughout this study, we focused more over evaluating these 3 variants of the DNDS heuristic, with a traditional deep learning approach involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQ), that we tried to answer in this study is as follows:  
 
 \begin{itemize}
   \item \textbf{RQ 1}: Does DNDS have better performance compared to traditional deep learning methods for classification? 
@@ -131,13 +131,13 @@ $d_i^{(m)}$ & retrieval distance of neighbor $i$ \\
 \hline
 $y_i$ & class label of neighbor $i$ \\
 \hline
-$k_{\text{vote}}$ & voting/IDW neighborhood size \\
+$k_{vote}$ & Voting/scoring candidates (10 is used here) \\
 \hline
-$K_{\text{density}}$ & local density neighborhood size \\
+$K_{density}$ & local density neighborhood size \\
 \hline
 $\rho_m(c)$ & global class density in modality $m$ \\
 \hline
-$\rho_m^{\text{local}}(c)$ & local class density around query \\
+$\rho_m^{local}(c)$ & local class density around query \\
 \hline
 $\tilde{\rho}_m(c)$ & KDE-smoothed class density \\
 \hline
@@ -146,6 +146,10 @@ $h$ & KDE bandwidth \\
 $\alpha$ & image-text fusion weight \\
 \hline
 $\epsilon$ & numerical stability constant \\
+\hline
+$N_m(c)$ & Count of instances of class $c$ \\
+\hline
+$N_m(c')$ & Count all instances \\
 \hline
 \end{tabular}
 \caption{Notation and symbol definitions used throughout the paper.}
@@ -216,16 +220,19 @@ Kernel Density Estimated Density Normalized Distance Score (KDE DNDS):
   {{\tilde{\rho}_m(c)}}$
 \end{center} 
 
-One can refer to \autoref{tab:notation} for the notations used throughout the paper.
+One can refer to \autoref{tab:notation} for the notations used throughout the paper. It is important to note here that all of the DNDS variants builds on the IDW strategy, where the cosine distance is inverted for a kind of ``similarity score''. DNDS variants normalize the score based on class density in different strategies.
+
+Global DNDS is the most easiest strategy, where the normalization simply considers a class's overall density in the database. The higher the density for a class, the more imbalanced that class is, and the heavier the penalization for that class's score is. It is also the most efficient, with $O(1)$ complexity, as maintaining a counter for the classes can help in calculating $N_m(c)$ and $N_m(c')$ in constant time.
+
+Local DNDS calculates the density over a local neighborhood near query $q$, instead of the entire dataset ( The notation, $ \{ i \in \mathcal{N}_{K_{\text{density}}}^{(m)}(q) : y_i = c \} $ refers to instances of class $c$ within that neighborhood). This addresses the issue of a class being locally dense, but globally sparse - potentially throwing off the score (especially with Global DNDS, where globally sparse classes are already given more weight). However, the performance of this is heavily reliant on the hyperparameter $K_{density}$, or the neighborhood size.
 
 
 \section{Experiment Setup}
 \label{sec:experiment setup}
 
-\subsection{Experimental setup and procedure}
 All models were trained and evaluated under consistent settings. Hyperparameters such as fusion weight $(\alpha)$, neighborhood size $(k)$, and density parameters were tuned using validation set. Performance was measured using accuracy, macro F1-score, weighted F1-score, and per-class percision and recall.  
 
-To evaluate robustness, controlled imbalance experiments were conducted by reducing class samples at predefined ratios. Additionally, a continual-memory setup was implemented where the retrieval database size was gradually increased to analyze performance trends. These experiments provide insights into the eddectiveness of supervised and retrieval-based approaches in terms of accuracy, robustness, and generalization.
+To evaluate robustness, controlled imbalance experiments were conducted by reducing class samples at predefined ratios. Additionally, a continual-memory setup was implemented where the retrieval database size was gradually increased to analyze performance trends. These experiments provide insights into the effectiveness of supervised and retrieval-based approaches in terms of accuracy, robustness, and generalization.
 
 \begin{figure}[htb]
 \centering
