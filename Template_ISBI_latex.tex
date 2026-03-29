@@ -17,7 +17,8 @@
 % --------------------
 \def\x{{\mathbf x}}
 \def\L{{\cal L}}
-
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\softmax}{softmax}
 % Title.
 % ------
 \title{Inference vs Retrieval- Evaluating Traditional Models and Novel Vector Classification Heuristics for Multimodal Garbage Classification}
@@ -115,11 +116,21 @@ For experiments with RAC, the training subset of the dataset was converted into 
 
 \subsection{Combining Modality}
 
-In both the traditional approach and RAC approach, the two modalities - image and text were independently accounted for classification, with their individual classification weights combined for the final prediction like as follows:
-  \begin{center}
-      $W_{fused} = \alpha W_{text}+(1-\alpha)W_{image}$
-  \end{center}    
-Where $W_{text}$ and $W_{image}$ are the class scores from text and image models, respectively, and $\alpha \in [0,1]$ controls the contribution of each modality. The hyperparameter $\alpha$ started as 0.5, and was tuned when needed to extract the best classification performance.
+In both the traditional approach and RAC approach, the two modalities - image and text were independently accounted for classification, with their individual classification weights combined for the final prediction, $\hat{y}$.
+
+For traditional:
+\begin{center}
+  $W_{fused} = \alpha W_{text}+(1-\alpha)W_{image}$\\
+  $\hat{y} = \softmax_{c}(W_{fused}$)
+\end{center}
+
+And, for RAC:
+\begin{center}
+  $S_{fused}(c) = \alpha S_{image}(c)+(1-\alpha)S_{text}(c)$\\
+  $\hat{y} = \argmax_{c}(S_{fused}(c))$
+\end{center}
+
+While traditional works with class weights ($W_{image}, W_{text}$) and RAC works with class retrieval scores ($S_{image}(c), S_{text}(c)$), the underlying contribution hyperparameter $\alpha \in [0,1]$ has the same meaning. The hyperparameter $\alpha$ started as 0.5, and was tuned when needed to extract the best classification performance.
 
 \subsection{The Traditional Approach}
 
@@ -131,25 +142,23 @@ Note that we did not use state-of-the-art heavy models, as most waste processing
 
 \subsection{The RAC Approach}
 
-For t
+The RAC approach works in the premise of vector similarity search, with cosine similarity being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. From the class scores $S_{fused}(c)$, the final classification $\hat{y}$ is obtained as:
+\begin{align*}
+\hat{y} = \argmax_{c} S_{fused}(c)
+\end{align*}
+
 
 
 \subsection{Model Architectures}
-Two categories of approaches were evaluated: supervised multimodal models and retrieval-augmented classification (RAC)
 
-For supervised learning, an image model based on MobileNetV3 and a text model based on DistilBERT were trained independently. Their outputs were combined using weighted logic fusion to leverage complementary information from both modalities. The fusion is defined as:
-  \begin{center}
-      $W_{fused} = \alpha W_{text}+(1-\alpha)W_{image}$
-  \end{center}    
-were $W_{text}$ and $W_{image}$ are the class scores from text and image models, respectively, and $\alpha \in [0,1]$ controls the contribution of each modality.
 
 In addition to supervised models, retrieval-augmented classification was implemented using multimodal embedding stored in a ChromaDB database. For a given query $q$, nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics.
 
 The final RAC prediction is obtained by combining modality-specific scores:
   \begin{center}
-      $S(c) = \alpha S_{I}(c)+(1-\alpha)S_{T}(c)$,\quad $\hat{y} = \arg\max_{c} S(c)$
+      $S_{fused}(c) = \alpha S_{image}(c)+(1-\alpha)S_{text}(c)$,\quad $\hat{y} = \arg\max_{c} S_{fused}(c)$
   \end{center} 
-where $S_{I}(c)$ and $S_{T}(c)$ denote image and text retrieval scores.
+where $S_{image}(c)$ and $S_{text}(c)$ denote image and text retrieval scores.
 Several scoring strategies were evaluated:
 Majority vote:
   \begin{center}
