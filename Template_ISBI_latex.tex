@@ -3,6 +3,7 @@
 %          IEEEbib.bst - IEEE bibliography style file.
 % --------------------------------------------------------------------------
 \documentclass{article}
+\usepackage[T1]{fontenc}
 \usepackage{spconf,amsmath,graphicx}
 \usepackage{hyperref}
 \usepackage{appendix}
@@ -225,6 +226,8 @@ One can refer to \autoref{tab:notation} for the notations used throughout the pa
 Global DNDS is the most easiest strategy, where the normalization simply considers a class's overall density in the database. The higher the density for a class, the more imbalanced that class is, and the heavier the penalization for that class's score is. It is also the most efficient, with $O(1)$ complexity, as maintaining a counter for the classes can help in calculating $N_m(c)$ and $N_m(c')$ in constant time.
 
 Local DNDS calculates the density over a local neighborhood near query $q$, instead of the entire dataset ( The notation, $ \{ i \in \mathcal{N}_{K_{\text{density}}}^{(m)}(q) : y_i = c \} $ refers to instances of class $c$ within that neighborhood). This addresses the issue of a class being locally dense, but globally sparse - potentially throwing off the score (especially with Global DNDS, where globally sparse classes are already given more weight). However, the performance of this is heavily reliant on the hyperparameter $K_{density}$, or the neighborhood size.
+
+KDE DNDS combines the strengths of Local DNDS and Global DNDS, by emphasizing more on local clusters, while also keeping distant clusters in consideration. It does not abruptly cut off neighborhood like a strict value of $K_{density}$ in Local DNDS, neither is it inconsiderate of local density like Global DNDS. KDE DNDS achieves this by implementing Kernel Density Estimation \cite{wkeglarczyk2018kernel}, with a Gaussian kernel. 
 
 
 \section{Experiment Setup}
