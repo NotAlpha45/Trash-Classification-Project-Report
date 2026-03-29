@@ -130,7 +130,7 @@ And, for RAC:
   $\hat{y} = \argmax_{c}(S_{fused}(c))$
 \end{center}
 
-While traditional works with class weights ($W_{image}, W_{text}$) and RAC works with class retrieval scores ($S_{image}(c), S_{text}(c)$), the underlying contribution hyperparameter $\alpha \in [0,1]$ has the same meaning. The hyperparameter $\alpha$ started as 0.5, and was tuned when needed to extract the best classification performance.
+While traditional works with class weights ($W_{image}, W_{text}$) and RAC works with class retrieval scores ($S_{image}(c), S_{text}(c)$), the underlying contribution hyperparameter $\alpha \in [0,1]$ has the same meaning. In traditional, softmax is used to convert weights to probabilities. In RAC, just the maximum score (argmax) is taken. The hyperparameter $\alpha$ started as 0.5, and was tuned when needed to extract the best classification performance.
 
 \subsection{The Traditional Approach}
 
@@ -138,15 +138,45 @@ The traditional approach refers to the use of supervised deep learning methods f
 
 On the other hand, DistilBERT was used for classification. DistilBERT is a very lightweight transformer architecture model that shows good performance for text related tasks \cite{sanh2019distilbert}. Since our text labels for images are small, there would be no problem related to the small token window of DistilBERT. DistilBERT was paired with a linear classification layer with size of $(768 \times 4)$. Like MobileNetV3, DistilBERT is also a pre-trained model over Wikipedia \cite{wikidump} and BookCorpus \cite{Zhu_2015_ICCV} datasets, and only required the classification head to be fine-tuned. 
 
-Note that we did not use state-of-the-art heavy models, as most waste processing plants have limited resources for computing, and we wanted to match those constraints \cite{samson2026lightweight} \cite{farshadfar2025machine}. The usage of pre-trained model already offloads a lot of computational overhead for training.
+% NOTE Add this later on in discussion
+% Note that we did not use state-of-the-art heavy models, as most waste processing plants have limited resources for computing, and we wanted to match those constraints \cite{samson2026lightweight} \cite{farshadfar2025machine}. The usage of pre-trained model already offloads a lot of computational overhead for training.
 
 \subsection{The RAC Approach}
 
-The RAC approach works in the premise of vector similarity search, with cosine similarity being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. From the class scores $S_{fused}(c)$, the final classification $\hat{y}$ is obtained as:
-\begin{align*}
-\hat{y} = \argmax_{c} S_{fused}(c)
-\end{align*}
-
+The RAC approach works in the premise of vector similarity search, with cosine similarity being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. Now, the scoring heuristics (for a given modality $m$ and a class $c$) used in this work are as follows:\\\\
+\textbf{Majority Vote:}
+\begin{center}
+    $S_{m}(c) = S_m(c) = \sum_{i \in N_k^{(m)}(q)} \mathbf{1}[y_i = c]$
+\end{center} 
+\textbf{Inverse Distance Weighting (IDW):}
+\begin{center}
+      $S_{m}(c) = S_m(c) = \sum_{i \in N_k^{(m)}(q),y_{i}=c} \frac{1}{d_k^{m} + \epsilon} $
+\end{center} 
+\textbf{Global Density Normalized Distance Score (Global DNDS):}
+\begin{center}
+  $\rho_m(c) = \frac{N_m(c)}{\sum_{c'} N_m(c')}$ \\
+  $S_m(c) = \sum_{\substack{i \in \mathcal{N}_k^{(m)}(q) \\ y_i = c}} 
+  \frac{1}{\left(d_i^{(m)} + \epsilon\right)\,\rho_m(c)}$
+\end{center} 
+\textbf{Local Density Normalized Distance Score (Local DNDS):}
+\begin{center}
+  $\rho_m^{\text{local}}(c) = 
+  \frac{\left| \{ i \in \mathcal{N}_{K_{\text{density}}}^{(m)}(q) : y_i = c \} \right|}
+  {K_{\text{density}}}$,\\
+  $S_m(c) = 
+  \frac{
+  \sum_{\substack{i \in \mathcal{N}_k^{(m)}(q) \\ y_i = c}} 
+  \frac{1}{d_i^{(m)} + \epsilon}
+  }
+  {\rho_m^{\text{local}}(c)}$
+\end{center}
+\textbf{Kernel Density Estimated Density Normalized Distance Score (KDE DNDS):}
+\begin{center}
+  $\tilde{\rho}_m(c) = \sum_{j : y_j = c} 
+  \exp\left( -\frac{\left(d_j^{(m)}\right)^2}{2h^2} \right)$, \\ \vspace{10pt}
+  $S_m(c) =\frac{\sum_{\substack{i \in \mathcal{N}_k^{(m)}(q),,  y_i = c \frac{1}{d_i^{(m)} + \epsilon}}}} 
+  {{\tilde{\rho}_m(c)}}$
+\end{center} 
 
 
 \subsection{Model Architectures}
