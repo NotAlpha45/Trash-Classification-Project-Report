@@ -4,6 +4,7 @@
 % --------------------------------------------------------------------------
 \documentclass{article}
 \usepackage{spconf,amsmath,graphicx}
+\usepackage{hyperref}
 
 % It's fine to compress itemized lists if you used them in the
 % manuscript
@@ -62,7 +63,7 @@
 %
 \begin{abstract}
 
-With the increasing use of multimodal data and specialized models for classification tasks, important questions arise regarding the effectiveness of traditional inference-based models versus retrieval-augmented approaches. In particular, combining image and text modalities introduces challenges in achieving both accuracy and robustness, especially when it comes to data skewness and domain drift (and additional training resource cost when comparing with ). In this work, we compare supervised multimodal models with retrieval-augmented classification using 3 novel vector-based heuristics for four-class garbage classification problem. Through our various experiments, we found that, while supervised fusion models provide strong baseline performance and inference velocity, retrieval-based methods, especially density-aware approaches, show improved robustness and better performance (upto 3.41\% in F1 Score, without any additional tuning) under severe class imbalance and limited memory conditions.
+With the increasing use of multimodal data and specialized models for classification tasks, important questions arise regarding the effectiveness of traditional inference-based models versus retrieval-augmented approaches, especially when it comes to data skewness and domain drift. In this work, we compare supervised multimodal models with retrieval-augmented classification using 3 novel vector-based heuristics for a four-class garbage classification problem. Through our various experiments, we found that, while supervised fusion models provide strong baseline performance and inference velocity, retrieval-based methods, especially density-aware approaches, show improved robustness and better performance (upto 3.41\% in F1 Score, without any additional tuning).
 
 \end{abstract}
 %
@@ -74,35 +75,64 @@ Multimodal Lerning, Garbage Classification, RAC (Retrieval-Augmented Classificat
 \section{Introduction}
 \label{sec:intro}
 
-Garbage classification is an intriguing field that offers a good opportunity for applied multimodal classification tasks, as waste management facilities regularly use machine learning \cite{alexakis2025enhanced} to sort garbage according to some predefined criteria. The sorting typically implements unimodal classification with garbage images. But additional modality of text can help with ambiguity of classification that may arise with a single modality of images. 
-
-Deep learning (DL) models have been a popular choice in multimodal classification due to their ability to learn from heterogeneous data sources such as images and text and being more adaptable for complex patterns than traditional machine learning models. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems. A common strategy is combine predictions from image and text models using fusion techniques such as weighted logic aggregation, enabling improved accuracy and generalization. However, these supervised approaches rely entirely on learned representations and may face limitations under challenging conditions such as class imbalance, limited training data or domain drift. Those conditions often require rigorous training, normalization, complex feature engineering, augmentation, or re-training an existing model - which means a penalty of computational resources on top of an already extensive dataset required for these models to work properly \cite{islam2026learning} \cite{alexakis2025enhanced}.
+Garbage classification is an intriguing field that offers a good opportunity for applied multimodal classification tasks, as waste management facilities regularly use machine learning \cite{alexakis2025enhanced} to sort garbage according to some predefined criteria. Deep learning (DL) models have been a popular choice in multimodal classification due to their ability to learn from heterogeneous data sources such as images and text and being more adaptable for complex patterns in both unimodal and multimodal scenarios. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems \cite{alexakis2025enhanced}. However, these supervised approaches may face limitations under challenging conditions such as class imbalance, limited training data or domain drift. Those conditions often require rigorous training, normalization, complex feature engineering, augmentation, or re-training an existing model - which means a penalty of computational resources on top of an already extensive dataset required for these models to work properly \cite{islam2026learning}.
 
 An alternative approach is retrieval-augmented classification (RAC), which utilizes embedding-based memory to retrieve similar instance and make predictions based on neighborhood evidence. This allows the model to incorporate additional contextual information beyond the training distribution but introduces challenges in retrieval design and scoring. Despite increasing interest in such methods, a systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In our work, a two-phase framework is presented to evaluate both strategies for multimodal garbage classification, with experiments conducted under standard settings, class imbalance, and varying memory size to analyze performance, robustness, and generalization. Implemented with modern vector databases like Chroma, Pinecone, LanceDB, and PGVector - RAC only has a storage overhead, which is much cheaper than memory in terms of hardware price. 
 
-But more importantly, to address the challenges in retrieval design and scoring, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain drift by taking into account class distributions in various ways. This DNDS has 3 variants that we studied in this work - Global DNDS (takes the entire database into account for class imbalance), Local DNDS (takes into account a local region of a query for class imbalance), and KDE DNDS (Uses Gaussian kernel density estimation for accounting ``instance contribution" for class imbalance). This DNDS heuristic is dynamic (works well even with continuously increasing database size), designed to work with cosine distances with high-dimensional vector embedding, and corrects itself for class skewness. Throughout this study, we focused more over evaluating these 3 variants of the DNDS heuristic, with a traditional deep learning approach involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQ), that we tried to answer in this study is as follows:     
+To address the challenges in retrieval design and scoring, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain drift by taking into account class distributions in various ways. This DNDS has 3 variants (which ultimately makes it 3 heuristics) that we studied in this work - Global DNDS (takes the entire database into account for class imbalance), Local DNDS (takes into account a local region of a query for class imbalance), and KDE DNDS (Uses Gaussian kernel density estimation for accounting ``instance contribution" for class imbalance). This DNDS heuristic is dynamic (works well even with continuously increasing database size), designed to work with cosine distances with high-dimensional vector embedding, and corrects itself for class skewness. Throughout this study, we focused more over evaluating these 3 variants of the DNDS heuristic, with a traditional deep learning approach involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQ), that we tried to answer in this study is as follows:  
 
 \begin{itemize}
-  \item \textbf{RQ 1}: Does DNDS have better performance compared to traditional methods for classification? 
+  \item \textbf{RQ 1}: Does DNDS have better performance compared to traditional deep learning methods for classification? 
   \item \textbf{RQ 2}: How robust is DNDS against severe class imbalance?
   \item \textbf{RQ 3}: Can DNDS maintain it's performance with increasing database size?
   \item \textbf{RQ 4}: Which DNDS variant is the most effective overall?
 \end{itemize}
 
+\section{Related Work}
+\label{sec:related work}
+[Dipu, write this please]
+
+
+\section{Dataset}
+
+The CVPR 2024 trash classification dataset was used for training, validation, and testing of both the traditional and RAC approach. The task involves four-class classification of garbage categories: Black (3459 instances), Blue (6720 instances), Green (3492 instances), and TTR (3286 instances). Black refers to non-recyclable and non-compostable trash, Blue refers to recyclable trash, Green refers to compostable trash, and TTR refers to non-conventional trash like E-Waste. The dataset contains images of various trash, with the image file names being a short description of the image, acting as an additional modality.
+
+The training subset has significant class imbalance, which presents a challenge for both the traditional approach and multimodal approach, as seen in \autoref{fig:train-set-distribution}.  
+
+For experiments with RAC, the training subset of the dataset was converted into embeddings (vector representations) for both images and texts, and kept in a vector database, as examples. Chroma \cite{chromadb} was used for the vector database. During the experiments, the dataset was used in various ways, from training to simulating class imbalance, the details of which are in \autoref{sec:experiment setup}.
+
+
 \begin{figure}[htb]
 \centering
-\centerline{\includegraphics[width=\linewidth]{images/Classification.png}}
-\caption{Sample images from the training dataset across four classes- Black, Blue, Green, and TTR-demonstrating the diversity of objects and visual variations within each category.}
-\label{fig:classification}
+\centerline{\includegraphics[width=0.8\linewidth]{images/train_set_distribution.png}}
+\caption{Class distribution in the training set}
+\label{fig:train-set-distribution}
 \end{figure}
 
-\section{Methods}
-\subsection{Datasets}
-The CVPR 2024 trash classification dataset was used for training, validation, and testing of both supervised and retrieval-based models. The task involves four-class classification of garbage categories: Black, Blue, Green, and TTR as shown in Figure \ref{fig:classification}. The dataset contains images and text data, where text inputs are derived from filename-based descriptions and serve as an additional modality.
 
-The image dataset is organized into training, validation, and test splits, ensuring proper separation for model development and evaluation. Corresponding text data are provided in CSV format with labeled samples aligned to the image data. All images were resized and normalized before training, while text data were tokenized and processed using standard natual language preprocessing techniques.
+\section{Methodology}
+\label{sec:methodology}
 
-To improve generalization, the dataset was used in multiple experimental settings. In addition to standard training, and testing, class imbalance scenarios were simulated by reducing the number of samples in minority classes at controlled ratios. Futhermore, for retrieval-based experiments, multimodal embeddings from the training and validation sets were stored in a persistent database, which was progressively expanded to study the impact of memory size on performance.
+\subsection{Combining Modality}
+
+In both the traditional approach and RAC approach, the two modalities - image and text were independently accounted for classification, with their individual classification weights combined for the final prediction like as follows:
+  \begin{center}
+      $W_{fused} = \alpha W_{text}+(1-\alpha)W_{image}$
+  \end{center}    
+Where $W_{text}$ and $W_{image}$ are the class scores from text and image models, respectively, and $\alpha \in [0,1]$ controls the contribution of each modality. The hyperparameter $\alpha$ started as 0.5, and was tuned when needed to extract the best classification performance.
+
+\subsection{The Traditional Approach}
+
+The traditional approach refers to the use of supervised deep learning methods for multimodal classification. For the image model, we selected MobileNetV3 as it offers a good balance between accuracy and efficiency \cite{howard2019searching}. For the classification head, a 3 layer neural network was used with $(960 \times 512)$, $(512 \times 256)$, and $(256 \times 4)$ layer sizes respectively. Since we used a pre-trained variant (on ImageNet dataset \cite{deng2009imagenet}) of MobileNetV3, we only needed to train the classification head (transfer learning). 
+
+On the other hand, DistilBERT was used for classification. DistilBERT is a very lightweight transformer architecture model that shows good performance for text related tasks \cite{sanh2019distilbert}. Since our text labels for images are small, there would be no problem related to the small token window of DistilBERT. DistilBERT was paired with a linear classification layer with size of $(768 \times 4)$. Like MobileNetV3, DistilBERT is also a pre-trained model over Wikipedia \cite{wikidump} and BookCorpus \cite{Zhu_2015_ICCV} datasets, and only required the classification head to be fine-tuned. 
+
+Note that we did not use state-of-the-art heavy models, as most waste processing plants have limited resources for computing, and we wanted to match those constraints \cite{samson2026lightweight} \cite{farshadfar2025machine}. The usage of pre-trained model already offloads a lot of computational overhead for training.
+
+\subsection{The RAC Approach}
+
+For t
+
 
 \subsection{Model Architectures}
 Two categories of approaches were evaluated: supervised multimodal models and retrieval-augmented classification (RAC)
@@ -198,6 +228,10 @@ To evaluate robustness, controlled imbalance experiments were conducted by reduc
 \label{fig:learning}
 \end{figure}
 
+\section{Experiment Setup}
+\label{sec:experiment setup}
+More to write here.
+
 \section{Results}
 Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
 
@@ -213,10 +247,10 @@ The observed performance differences can be attributed to how each method handle
 Overall, while supervised multimodal fusion provides a strong and efficient baseline, retrieval-augmented classification particularly with density normalization offers improved robustness, scalability, and generalization. These findings suggest that combining inference-based learning with retrieval-driven reasoning is a promising direction for multimodal classification tasks. Future work may explore more advanced embedding techniques, adapting retrieval strategies, and hybrid models that further integrate supervised learning with retrieval mechanisms to enhance performance accross diverse real-word scenarios.
 
 \section{Conclusion}
-\label{sec:majhead}
+\label{sec:conclusion}
 In this work, we investigated the effectiveness of supervised multimodal fusion and retrieval-augmented classification for garbage classification. We found that while supervised fusion models provide strong baseline performance, retrieval-based approaches, particularly density-aware methods, achieve improved accuracy and robustness. These methods demonstrate better performance under class imbalance and benefit from increased retrieval memory, indicating their scalability and adaptability.
 
-Overall, the results suggest the retrieval-augmented classification offers a more reliable and generalizable approach compared to traditional inference-based models. This highlights the importance of integrating retrieval mechanisms with multimodal learning for real-world classification tasks. \cite{zhang2013support} \cite{pedregosa2011scikit}
+Overall, the results suggest the retrieval-augmented classification offers a more reliable and generalizable approach compared to traditional inference-based models. This highlights the importance of integrating retrieval mechanisms with multimodal learning for real-world classification tasks.
 
 % To start a new column (but not a new page) and help balance the last-page
 % column length use \vfill\pagebreak.
@@ -226,9 +260,6 @@ Overall, the results suggest the retrieval-augmented classification offers a mor
 
 \clearpage
 
-\section{Acknowledgments}
-\label{sec:acknowledgments}
-ND is supported by an Natural Sciences and Engineering Research Council (NSERC) BRAIN CREATE award, an NSERC Canada Graduate Scholarship (CGS-M), an Alberta Innovates graduate student award, and an Alberta Graduate Excellence Scholarship (AGES). RS and RF thank NSERC for ongoing operating support for this project (RGPIN/2021-02858 and RGPIN/2021-02867). RS also acknowledges operational support from the NSERC Alliance–Alberta Innovates Advance Program.
 
 % References should be produced using the bibtex program from suitable
 % BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
