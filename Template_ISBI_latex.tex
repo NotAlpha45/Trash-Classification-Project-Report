@@ -203,15 +203,15 @@ Global Density Normalized Distance Score (Global DNDS):
 \end{center} 
 Local Density Normalized Distance Score (Local DNDS):
 \begin{center}
-  $\rho_m^{\text{local}}(c) = 
-  \frac{\left| \{ i \in \mathcal{N}_{K_{\text{density}}}^{(m)}(q) : y_i = c \} \right|}
-  {K_{\text{density}}}$,\\
+  $\rho_m^{local}(c) = 
+  \frac{\left| \{ i \in \mathcal{N}_{K_{density}}^{(m)}(q) : y_i = c \} \right|}
+  {K_{density}}$,\\
   $S_m(c) = 
   \frac{
   \sum_{\substack{i \in \mathcal{N}_k^{(m)}(q) \\ y_i = c}} 
   \frac{1}{d_i^{(m)} + \epsilon}
   }
-  {\rho_m^{\text{local}}(c)}$
+  {\rho_m^{local}(c)}$
 \end{center}
 Kernel Density Estimated Density Normalized Distance Score (KDE DNDS):
 \begin{center}
@@ -225,9 +225,9 @@ One can refer to \autoref{tab:notation} for the notations used throughout the pa
 
 Global DNDS is the most easiest strategy, where the normalization simply considers a class's overall density in the database. The higher the density for a class, the more imbalanced that class is, and the heavier the penalization for that class's score is. It is also the most efficient, with $O(1)$ complexity, as maintaining a counter for the classes can help in calculating $N_m(c)$ and $N_m(c')$ in constant time.
 
-Local DNDS calculates the density over a local neighborhood near query $q$, instead of the entire dataset ( The notation, $ \{ i \in \mathcal{N}_{K_{\text{density}}}^{(m)}(q) : y_i = c \} $ refers to instances of class $c$ within that neighborhood). This addresses the issue of a class being locally dense, but globally sparse - potentially throwing off the score (especially with Global DNDS, where globally sparse classes are already given more weight). However, the performance of this is heavily reliant on the hyperparameter $K_{density}$, or the neighborhood size.
+Local DNDS calculates the density over a local neighborhood, $ \{ i \in \mathcal{N}_{K_{density}}^{(m)}(q) : y_i = c \} $, near query $q$, instead of the entire database. This addresses a key weakness of Global DNDS - a class, $c$, may be globally sparse, but locally dense near $q$, which causes Global DNDS to over-amplify the weight of $c$, despite it's strong local presence. By fixating the density estimate to a local neighborhood, Local DNDS corrects itself for this locality problem. However, the neighborhood size $K_{density}$ is a very sensitive hyperparameter. If $K_{\text{density}}$ is too small compared to the database size and the spread of class instances, some classes will have near zero representations in the neighborhood, causing their density estimate to collapse. A more detailed discussion on fine-tuning the value of $K_{\text{density}}$ is discussed in \autoref{sec:experiment setup}.
 
-KDE DNDS combines the strengths of Local DNDS and Global DNDS, by emphasizing more on local clusters, while also keeping distant clusters in consideration. It does not abruptly cut off neighborhood like a strict value of $K_{density}$ in Local DNDS, neither is it inconsiderate of local density like Global DNDS. KDE DNDS achieves this by implementing Kernel Density Estimation \cite{wkeglarczyk2018kernel}, with a Gaussian kernel. 
+KDE DNDS combines the strengths of Local DNDS and Global DNDS, by emphasizing more on local instances, while also keeping distant instances in consideration. It does not abruptly cut off neighborhood like a strict value of $K_{density}$ in Local DNDS, neither is it inconsiderate of local density like Global DNDS. KDE DNDS achieves this by implementing Kernel Density Estimation \cite{wkeglarczyk2018kernel}, with a Gaussian kernel. The Gaussian kernel allows nearby instances of class $c$ to have exponentially more contribution towards the density estimate, but also accounts for the further instances, even if exponentially less. This mirrors the Gaussian kernel in CNNs, where nearby pixels contribute more to defining a local patch — with the key distinction that KDE integrates over all database points rather than a fixed receptive field, which is exactly what eliminates the hard-cutoff artifact of Local DNDS. Using this as a normalization factor penalizes true majority classes more faithfully. The bandwidth $h$ controls the spatial scale at which class density is estimated — too small and the estimate becomes noisy; too large and KDE approximates the global prior, losing its local sensitivity. We address this through an ablation study in \autoref{sec:experiment setup}.
 
 
 \section{Experiment Setup}
