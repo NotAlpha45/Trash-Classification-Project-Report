@@ -93,25 +93,8 @@ To address the challenges in retrieval design and scoring, we propose a novel he
 
 \section{Related Work}
 \label{sec:related work}
-\subsection{Deep multimodal learning for municipal solid waste sorting}
-Multimodal learning is a powerful techniquie for waste classification which significatly outperform unimodal approaches \cite{lu2022deep}.
-Feature-level fusion of visual and acoustic data (using pre-trained VGG16 for images and 1D CNNs for audio) achieves 95\% accuracy compared to 85\% for unimodal approaches.
-Critically, feature-based fusion in fully connected layers outperforms decision-level fusion when leveraging deeply learned representations. 
-However reliability on limited dataset results in lack of sufficient sample diversity and waste variety, limiting model generalizability.
-Systematic exploration of alternative modalities and fusion architectures is needed to push performance boundaries and understand which fusion strategies work best under different operating conditions.
-
-
-\subsection{Retrieval Augmented Classification for Long-Tail Visual Recognition}
-Large Transformer models store distributed visual representations across billions of parameters, creating a fundamental tension: comprehensive knowledge storage demands computational resources that exceed practical hardware limits.
-Retrieval-augmented classification (RAC) resolves this constraint by decoupling model capacity from classification performance through explicit external memory \cite{long2022retrieval} .
-This architectural separation enables dynamic knowledge updates - adding or removing classes without retraining model weights - a critical advantage for real-world deployment. 
-RAC's effectiveness on balanced data distributions remains an open empirical question that warrants systematic investigation.
-
-\subsection{KRA: K-Nearest Neighbor Retrieval Augmented Model for Text Classification}
-KRA builds a memory of training sample embeddings, then during inference retrieves the top k nearest neighbors for a given input.
-It augments these neighbors using both traditional techniques and LLM-based methods, weights them by similarity, and incorporates their labels into the final prediction.
-The approach improves performance across models like BERT, RoBERTa, CNN, and LSTM—showing the largest gains for BERT and RoBERTa - and often surpasses baseline methods \cite{li2024kra}.
-Searching neighbors across multiple dimensions or using multiple retrieval strategies could significantly reduce irrelevant matches.
+Deep multimodal learning  techniques are highly effiecient for waste classification in comparison to single modality. AS demonstrated in \cite{lu2022deep}, feature-level fusion in fully connected layers outperforms decision-level fusion when leveraging deeply learned representations for waste sorting.
+Among fusion strategies late fusion outperforms early and intermediate fusion on multimodal data \cite{bihler2023multi} \cite{willis2025exploring}.
 
 \section{Dataset}
 
