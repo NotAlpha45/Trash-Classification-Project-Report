@@ -100,6 +100,11 @@ Critically, feature-based fusion in fully connected layers outperforms decision-
 However reliability on limited dataset results in lack of sufficient sample diversity and waste variety, limiting model generalizability.
 Systematic exploration of alternative modalities and fusion architectures is needed to push performance boundaries and understand which fusion strategies work best under different operating conditions.
 
+\subsection{Retrieval Augmented Classification for Long-Tail Visual Recognition}
+Large Transformer models store distributed visual representations across billions of parameters, creating a fundamental tension: comprehensive knowledge storage demands computational resources that exceed practical hardware limits.
+Retrieval-augmented classification (RAC) resolves this constraint by decoupling model capacity from classification performance through explicit external memory \cite{long2022retrieval} .
+This architectural separation enables dynamic knowledge updates - adding or removing classes without retraining model weights - a critical advantage for real-world deployment. 
+RAC's effectiveness on balanced data distributions remains an open empirical question that warrants systematic investigation.
 
 \section{Dataset}
 
