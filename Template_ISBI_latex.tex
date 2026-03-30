@@ -93,8 +93,14 @@ To address the challenges in retrieval design and scoring, we propose a novel he
 
 \section{Related Work}
 \label{sec:related work}
-Deep multimodal learning  techniques are highly effiecient for waste classification in comparison to single modality. AS demonstrated in \cite{lu2022deep}, feature-level fusion in fully connected layers outperforms decision-level fusion when leveraging deeply learned representations for waste sorting.
-Among fusion strategies late fusion outperforms early and intermediate fusion on multimodal data \cite{bihler2023multi} \cite{willis2025exploring}.
+Deep multimodal learning  techniques are highly effiecient for waste classification in comparison to single modality. As demonstrated in \cite{lu2022deep}, feature-level fusion in fully connected layers outperforms decision-level fusion when leveraging deeply learned representations for waste sorting.
+Among fusion strategies late fusion performs better than early and intermediate fusion on multimodal data \cite{bihler2023multi} \cite{willis2025exploring}.
+
+Skewed visual data is a common problem in waste classification, and various techniques have been proposed to address this issue.
+Retrieval Augmented Classification is particularly effective for minority classes in imbalanced datasets and domain adaptation \cite{long2022retrieval} \cite{lakatos2025investigating}.
+Shared representation for classification and retrieval hurts performance and leads to training instability\cite{liang2023retrieval}, so exploring multiple density-aware scoring heuristics is important for improving retrieval-based classification performance.
+RAC leveraging k-NN retrieval during inference demonstrates consistent improvements over over supervised baselines \cite{li2024kra}.
+
 
 \section{Dataset}
 
