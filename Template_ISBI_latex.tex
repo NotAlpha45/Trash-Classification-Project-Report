@@ -93,16 +93,20 @@ To address the challenges in retrieval design and scoring, we propose a novel he
 
 \section{Related Work}
 \label{sec:related work}
-Deep multimodal learning  techniques are highly effiecient for waste classification in comparison to single modality. As demonstrated in \cite{lu2022deep}, feature-level fusion in fully connected layers outperforms decision-level fusion when leveraging deeply learned representations for waste sorting.
-Among fusion strategies late fusion performs better than early and intermediate fusion on multimodal data \cite{bihler2023multi} \cite{willis2025exploring}.
+Deep multimodal learning  techniques are highly effiecient for waste classification in comparison to single modality approaches. 
+Feature-level fusion in fully connected layers outperforms decision-level strategies when leveraging deeply learned representations for waste sorting \cite{lu2022deep}, with late fusion demonstrating superior performance over early and intermediate fusion architectures \cite{bihler2023multi, willis2025exploring}. 
+These findings establish logit-level fusion as the state-of-the-art baseline for multimodal waste classification.
 
-Skewed visual data is a common problem in waste classification, and various techniques have been proposed to address this issue.
-Retrieval Augmented Classification is particularly effective for minority classes in imbalanced datasets and domain adaptation \cite{long2022retrieval} \cite{lakatos2025investigating}.
-Shared representation for classification and retrieval hurts performance and leads to training instability\cite{liang2023retrieval}, so exploring multiple density-aware scoring heuristics is important for improving retrieval-based classification performance.
+However, supervised approaches face critical limitations when deployed on imbalanced real-world waste data. 
 RAC leveraging k-NN retrieval during inference demonstrates consistent improvements over supervised baselines \cite{li2024kra}.
+While Retrieval Augmented Classification is particularly effective for minority classes in imbalanced datasets and domain adaptation \cite{long2022retrieval, lakatos2025investigating}, shared representation for classification and retrieval hurts performance and leads to training instability\cite{liang2023retrieval}.
+That is precisely why exploring multiple density-aware scoring heuristics is important for improving retrieval-based classification performance.
 
-Overlapping problem in imbalanced datasets is well addressed by density normalization strategies like adaptive k nearest neighbor methods as shown in \cite{yuan2021novel}, \cite{kim2021normalized}.
-In a recent work similar proximity ratio technique combined with weighting schemes were proven effective for imbalanced classification \cite{amer2025effective}.
+To address class overlap in imbalanced neighborhoods, density normalization strategies  like adaptive k nearest neighbor methods have proven effective \cite{yuan2021novel,kim2021normalized}.
+More recently, proximity ratio techniques combined with density-aware weighting schemes have shown improvements on imbalanced classification tasks \cite{amer2025effective}.
+
+Despite ChromaDB being the standard for RAC pipelines it's application to classification tasks with density-aware scoring is unexplored.
+Additionally, the robustness of multimodal RAC under controlled imbalance stress tests or the characterized performance scaling with memory growth has not been systematically investigated.
 
 \section{Dataset}
 
