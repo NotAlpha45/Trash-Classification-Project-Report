@@ -66,7 +66,7 @@
 %
 \begin{abstract}
 
-With the increasing use of multimodal data and specialized models for classification tasks, important questions arise regarding the effectiveness of traditional inference-based models versus retrieval-augmented approaches, especially when it comes to data skewness and domain drift. In this work, we compare supervised multimodal models with retrieval-augmented classification using 3 novel vector-based heuristics for a four-class garbage classification problem. Through our various experiments, we found that, while supervised fusion models provide strong baseline performance and inference velocity, retrieval-based methods, especially density-aware approaches, show improved robustness and better performance (upto 3.41\% in F1 Score, without any additional tuning).
+With the increasing use of multimodal data and specialized models for classification tasks, important questions arise regarding the effectiveness of traditional inference-based models versus retrieval-augmented approaches, especially when it comes to data skewness and domain drift. In this work, we compare supervised multimodal models with retrieval-augmented classification using 3 novel vector-based heuristics for a four-class garbage classification problem. Through our various experiments, we found that, while supervised fusion models provide strong baseline performance and inference velocity, retrieval-based methods, especially density-aware approaches, show improved robustness and better performance (upto 4\% in F1 Score, without any additional tuning).
 
 \end{abstract}
 %
@@ -107,6 +107,7 @@ More recently, proximity ratio techniques combined with density-aware weighting 
 
 While ChromaDB has become standard for RAC pipelines, its application to classification tasks with density-aware scoring remains unexplored.
 Additionally, no prior work has systematically evaluated multimodal RAC robustness under controlled imbalance stress tests or characterized performance scaling with memory growth.
+
 
 \section{Dataset}
 
@@ -198,7 +199,7 @@ On the other hand, DistilBERT was used for classification. DistilBERT is a very 
 
 \subsection{The RAC Approach}
 
-The RAC approach works in the premise of vector similarity search, with cosine similarity being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. Now, the scoring heuristics (for a given modality $m$ and a class $c$) used in this work are as follows:\\\\
+The RAC approach works in the premise of vector similarity search, with cosine similarity being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. Now, the scoring heuristics (for a given modality $m$ and a class $c$) used in this work are as follows: \\\\
 Majority Vote:
 \begin{center}
     $S_{m}(c) = S_m(c) = \sum_{i \in N_k^{(m)}(q)} \mathbf{1}[y_i = c]$
@@ -245,44 +246,44 @@ KDE DNDS combines the strengths of Local DNDS and Global DNDS, by emphasizing mo
 \section{Experiment Setup}
 \label{sec:experiment setup}
 
-All models were trained and evaluated under consistent settings. Hyperparameters such as fusion weight $(\alpha)$, neighborhood size $(k)$, and density parameters were tuned using validation set. Performance was measured using accuracy, macro F1-score, weighted F1-score, and per-class percision and recall.  
+The experiment was done in 2 phases. Phase 1 consisted of training the traditional methods, and phase 2 consisted of various experiments with RAC heuristics. All models and methods were evaluated under consistent settings. Hyperparameters such as fusion weight $(\alpha)$, neighborhood size $(k)$, and KDE bandwidth $h$ were tuned using validation set. Various metrics were used to evaluate performance, with emphasis being on accuracy, F1 score, and inference time (in milliseconds). Since F1 score cumulates precision and recall, it is an ideal metric for measuring classification robustness, especially when there is an imbalance present. Hence, some results are reported purely based on F1 score.
 
-To evaluate robustness, controlled imbalance experiments were conducted by reducing class samples at predefined ratios. Additionally, a continual-memory setup was implemented where the retrieval database size was gradually increased to analyze performance trends. These experiments provide insights into the effectiveness of supervised and retrieval-based approaches in terms of accuracy, robustness, and generalization.
 
-\begin{figure}[htb]
-\centering
-\centerline{\includegraphics[width=\linewidth]{images/phase 1 vs 2.png}}
-\caption{Comparison of Phase 1(supervised fusion) and Phase 2(retieval-augmented classification), showing improvement in macro F1 score.}
-\label{fig:phase}
-\end{figure}
 
-\begin{figure}
-\centering
-\centerline{\includegraphics[width=\linewidth]{images/Macro F1 scoreing variant.png}}
-\caption{Macro F1 score cmparison across different scroing variants, highlighting the effectiveness of density-aware methods.}
-\label{fig:macro_variant}
-\end{figure}
+% \begin{figure}[htb]
+% \centering
+% \centerline{\includegraphics[width=\linewidth]{images/phase 1 vs 2.png}}
+% \caption{Comparison of Phase 1(supervised fusion) and Phase 2(retieval-augmented classification), showing improvement in macro F1 score.}
+% \label{fig:phase}
+% \end{figure}
 
-\begin{figure}
-\centering
-\centerline{\includegraphics[width=\linewidth]{images/confusion matrix.png}}
-\caption{Confusion matrices for different scoring methods, illustrating classification performance across all classes.}
-\label{fig:confusion}
-\end{figure}
+% \begin{figure}
+% \centering
+% \centerline{\includegraphics[width=\linewidth]{images/Macro F1 scoreing variant.png}}
+% \caption{Macro F1 score cmparison across different scroing variants, highlighting the effectiveness of density-aware methods.}
+% \label{fig:macro_variant}
+% \end{figure}
 
-\begin{figure}
-\centering
-\centerline{\includegraphics[width=\linewidth]{images/imbalance.png}}
-\caption{Class-wise F1 score under increasing imbalance ratios, demonstrating improved robustness of density-aware methods.}
-\label{fig:imbalance}
-\end{figure}
+% \begin{figure}
+% \centering
+% \centerline{\includegraphics[width=\linewidth]{images/confusion matrix.png}}
+% \caption{Confusion matrices for different scoring methods, illustrating classification performance across all classes.}
+% \label{fig:confusion}
+% \end{figure}
 
-\begin{figure}
-\centering
-\centerline{\includegraphics[width=\linewidth]{images/learning curve.png}}
-\caption{Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory.}
-\label{fig:learning}
-\end{figure}
+% \begin{figure}
+% \centering
+% \centerline{\includegraphics[width=\linewidth]{images/imbalance.png}}
+% \caption{Class-wise F1 score under increasing imbalance ratios, demonstrating improved robustness of density-aware methods.}
+% \label{fig:imbalance}
+% \end{figure}
+
+% \begin{figure}
+% \centering
+% \centerline{\includegraphics[width=\linewidth]{images/learning curve.png}}
+% \caption{Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory.}
+% \label{fig:learning}
+% \end{figure}
 
 \section{Results}
 Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
