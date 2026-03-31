@@ -259,57 +259,34 @@ In the fourth step, the RAC approaches were tested with severe imbalance of clas
 
 Finally, in the fifth step, the RAC approaches were tested for continual learning, to elucidate RQ 3. In this experiment, a vector database collection was iteratively populated with the test data, from 10\% of the total data to 100\% of the total data - which mimics a growing database of instances.   
 
-
-
-% \begin{figure}[htb]
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/phase 1 vs 2.png}}
-% \caption{Comparison of Phase 1(supervised fusion) and Phase 2(retieval-augmented classification), showing improvement in macro F1 score.}
-% \label{fig:phase}
-% \end{figure}
-
-% \begin{figure}
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/Macro F1 scoreing variant.png}}
-% \caption{Macro F1 score cmparison across different scroing variants, highlighting the effectiveness of density-aware methods.}
-% \label{fig:macro_variant}
-% \end{figure}
-
-% \begin{figure}
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/confusion matrix.png}}
-% \caption{Confusion matrices for different scoring methods, illustrating classification performance across all classes.}
-% \label{fig:confusion}
-% \end{figure}
-
-% \begin{figure}
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/imbalance.png}}
-% \caption{Class-wise F1 score under increasing imbalance ratios, demonstrating improved robustness of density-aware methods.}
-% \label{fig:imbalance}
-% \end{figure}
-
-% \begin{figure}
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/learning curve.png}}
-% \caption{Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory.}
-% \label{fig:learning}
-% \end{figure}
-
 \section{Results}
 \label{sec:results}
-Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
+
+In this section, the results are briefly discussed with limited figures and tables. For more figures, refer to the \autoref{appendix}.
+
+The \autoref{fig:per-class-f1-delta} clearly shows that RAC triumphs the traditional methods, especially Global DNDS and KDE DNDS, having the highest delta gain. Which is further re-enforced by   
+
+\begin{figure}
+\centering
+\centerline{\includegraphics[width=\linewidth]{images/per_class_f1_delta.png}}
+\caption{Heatmap of per-class F1 score differences between traditional approach and RAC variants}
+\label{fig:per-class-f1-delta}
+\end{figure}
+
+% Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
 
 \section{Discussion}
-Across standard evaluation settings, retrieval-augmented classification demonstrates a clear and consistent improvement over traditional supervised fusion models. While multimodal fusion effectively combines image and text information to produce string baseline results, it relies entirely on learned representations and may not fully capture complex relationships in the data. In contrast, retrieval-based approaches leverage embedding neighborhood, allowing predictions to be influenced by similar examples. Among the evaluated methods, density-aware heuristics such as global DNDS and KDE-DNDS achieve the highest performance, indicating that incorporate class density into scoring leads to more reliable and discriminative predictions. Simpler approaches such as majority voting and inverse distance weighting show comparatively lower performance, highlighting their limitations in handling overlapping class distributions.
+\label{sec:discussion}
+[WIP]
+% Across standard evaluation settings, retrieval-augmented classification demonstrates a clear and consistent improvement over traditional supervised fusion models. While multimodal fusion effectively combines image and text information to produce string baseline results, it relies entirely on learned representations and may not fully capture complex relationships in the data. In contrast, retrieval-based approaches leverage embedding neighborhood, allowing predictions to be influenced by similar examples. Among the evaluated methods, density-aware heuristics such as global DNDS and KDE-DNDS achieve the highest performance, indicating that incorporate class density into scoring leads to more reliable and discriminative predictions. Simpler approaches such as majority voting and inverse distance weighting show comparatively lower performance, highlighting their limitations in handling overlapping class distributions.
 
-Under class imbalance conditions, all methods experience a decline in performance; however, the extent of degradation varies significantly. Density-normalized approaches maintain substantially higher F1 scores for minority classes, particularly TTR, demonstrating improved robustness. This behavior suggests that density-aware methods effectively compensate for uneven class distributions by reducing the dominance of majority-class neighbors during retrieval. In contrast, non-normalized methods tend to bias predictions towards majority classes, leading to increased misclassifications. The confusion matrix analysis further supports these findings, showing that density-based methods achieve better class separation and reduced confusion between visually or semantically similar categories.
+% Under class imbalance conditions, all methods experience a decline in performance; however, the extent of degradation varies significantly. Density-normalized approaches maintain substantially higher F1 scores for minority classes, particularly TTR, demonstrating improved robustness. This behavior suggests that density-aware methods effectively compensate for uneven class distributions by reducing the dominance of majority-class neighbors during retrieval. In contrast, non-normalized methods tend to bias predictions towards majority classes, leading to increased misclassifications. The confusion matrix analysis further supports these findings, showing that density-based methods achieve better class separation and reduced confusion between visually or semantically similar categories.
 
-In the continual-memory experiments, performance improves as the size of the retrieval database increases, confirming the importance of richer neighborhood information. As more samples are added, the embedding space becomes more representative of the overall data distribution, enabling more accurate retrieval and classification. Density-based methods exhibit more stable and consistent improvements compared to other approaches,indicating their ability to effectively utilize additional data without being adversely affected by redundancy or imbalance. This highlights a key advantage or retrieval-based system: their performance can scale with data availability without requiring retaining.
+% In the continual-memory experiments, performance improves as the size of the retrieval database increases, confirming the importance of richer neighborhood information. As more samples are added, the embedding space becomes more representative of the overall data distribution, enabling more accurate retrieval and classification. Density-based methods exhibit more stable and consistent improvements compared to other approaches,indicating their ability to effectively utilize additional data without being adversely affected by redundancy or imbalance. This highlights a key advantage or retrieval-based system: their performance can scale with data availability without requiring retaining.
 
-The observed performance differences can be attributed to how each method handles local and global data structure. Density-aware heuristics explicitly normalize scores based on class distribution, reducing bias and improving generalization. In contrast, simpler heuristics rely solely on distance or count-based measures, which may not adequately reflected the true distribution of classes in the embedding space. Additionally, retrieval-based methods introduce flexibility by allowing the system to adapt dynamically to new data through memory expansion, unlike traditional models that require retraining for updates.
+% The observed performance differences can be attributed to how each method handles local and global data structure. Density-aware heuristics explicitly normalize scores based on class distribution, reducing bias and improving generalization. In contrast, simpler heuristics rely solely on distance or count-based measures, which may not adequately reflected the true distribution of classes in the embedding space. Additionally, retrieval-based methods introduce flexibility by allowing the system to adapt dynamically to new data through memory expansion, unlike traditional models that require retraining for updates.
 
-Overall, while supervised multimodal fusion provides a strong and efficient baseline, retrieval-augmented classification particularly with density normalization offers improved robustness, scalability, and generalization. These findings suggest that combining inference-based learning with retrieval-driven reasoning is a promising direction for multimodal classification tasks. Future work may explore more advanced embedding techniques, adapting retrieval strategies, and hybrid models that further integrate supervised learning with retrieval mechanisms to enhance performance accross diverse real-word scenarios.
+% Overall, while supervised multimodal fusion provides a strong and efficient baseline, retrieval-augmented classification particularly with density normalization offers improved robustness, scalability, and generalization. These findings suggest that combining inference-based learning with retrieval-driven reasoning is a promising direction for multimodal classification tasks. Future work may explore more advanced embedding techniques, adapting retrieval strategies, and hybrid models that further integrate supervised learning with retrieval mechanisms to enhance performance accross diverse real-word scenarios.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -339,6 +316,7 @@ Overall, the results suggest the retrieval-augmented classification offers a mor
 \begin{appendices}
 
 \section{Appendix}
+\label{appendix}
 
 
 \subsection{Various Figures}
@@ -347,10 +325,12 @@ Overall, the results suggest the retrieval-augmented classification offers a mor
   
 \begin{figure}[htb]
 \centering
-\centerline{\includegraphics[width=0.8\linewidth]{images/train_set_distribution.png}}
+\centerline{\includegraphics[width=\linewidth]{images/train_set_distribution.png}}
 \caption{Class distribution in the training set}
 \label{fig:train-set-distribution}
 \end{figure}
+
+\subsubsection{Results}
 
 
 \end{appendices}
