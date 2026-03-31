@@ -111,19 +111,11 @@ Additionally, no prior work has systematically evaluated multimodal RAC robustne
 
 \section{Dataset}
 
-The CVPR 2024 trash classification dataset was used for training, validation, and testing of both the traditional and RAC approach. The task involves four-class classification of garbage categories: Black (3459 instances), Blue (6720 instances), Green (3492 instances), and TTR (3286 instances). Black refers to non-recyclable and non-compostable trash, Blue refers to recyclable trash, Green refers to compostable trash, and TTR refers to non-conventional trash like E-Waste. The dataset contains images of various trash, with the image file names being a short description of the image, acting as an additional modality.
+The multimodal garbage dataset by Cazarin Filho et. al. \cite{cazarin2025garbage} was used for training, validation, and testing of both the traditional and RAC approach. The dataset has 4 categories: Black (3459 instances, non-recyclable/non-compostable items), Blue (6720 instances, recyclable items), Green (3492 instances, compostable items), and TTR (3286 instances, other/e-waste items). The consists of images of various trash, with the image file names being a short description of the image, acting as an additional modality.
 
 The training subset has significant class imbalance, which presents a challenge for both the traditional approach and multimodal approach, as seen in \autoref{fig:train-set-distribution}.  
 
-For experiments with RAC, the training subset of the dataset was converted into embeddings (vector representations) for both images and texts, and kept in a vector database, as examples. Chroma \cite{chromadb} was used for the vector database. During the experiments, the dataset was used in various ways, from training to simulating class imbalance, the details of which are in \autoref{sec:experiment setup}.
-
-
-\begin{figure}[htb]
-\centering
-\centerline{\includegraphics[width=0.8\linewidth]{images/train_set_distribution.png}}
-\caption{Class distribution in the training set}
-\label{fig:train-set-distribution}
-\end{figure}
+Chroma \cite{chromadb} was used for the vector database. During the experiments, the dataset was used in various ways, from training to simulating class imbalance, the details of which are in \autoref{sec:experiment setup}.
 
 
 \section{Methodology}
@@ -339,5 +331,26 @@ Overall, the results suggest the retrieval-augmented classification offers a mor
 
 \bibliographystyle{IEEEbib}
 \bibliography{strings,refs}
+
+\clearpage
+
+\begin{appendices}
+
+\section{Appendix}
+
+
+\subsection{Various Figures}
+
+\subsubsection{Dataset}
+  
+\begin{figure}[htb]
+\centering
+\centerline{\includegraphics[width=0.8\linewidth]{images/train_set_distribution.png}}
+\caption{Class distribution in the training set}
+\label{fig:train-set-distribution}
+\end{figure}
+
+
+\end{appendices}
 
 \end{document}
