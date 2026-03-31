@@ -27,7 +27,7 @@
 %
 % Single address.
 % ---------------
-\name{Maheen Hoque,$^{1}$ Dipu Khan,$^{1}$ Lila Sanjay Kumar Gorlie$^{1}$}
+\name{Maheen Hoque,$^{1}$ Arman Hossain Dipu Khan,$^{1}$ Lila Sanjay Kumar Gorlie$^{1}$}
 \address{$^{1}$Master of Engineering Graduate Program, Electrical and Software Engineering, \\
  University of Calgary, Calgary, AB, Canada}
 %
@@ -93,7 +93,20 @@ To address the challenges in retrieval design and scoring, we propose a novel he
 
 \section{Related Work}
 \label{sec:related work}
-[Dipu, write this please]
+Deep multimodal learning techniques are highly efficient for waste classification, outperforming single-modality approaches. 
+Feature-level fusion in fully connected layers outperforms decision-level strategies when leveraging deeply learned representations for waste sorting \cite{lu2022deep}, with late fusion demonstrating superior performance over early and intermediate fusion architectures \cite{bihler2023multi, willis2025exploring}. 
+These findings establish logit-level fusion as the state-of-the-art baseline for multimodal waste classification.
+
+Retrieval-augmented classification (RAC) leveraging k-NN retrieval during inference demonstrates consistent improvements over supervised baselines \cite{li2024kra}.
+However, supervised approaches face critical limitations when deployed on imbalanced real-world waste data. 
+RAC is particularly effective for minority classes in imbalanced datasets and domain adaptation scenarios \cite{long2022retrieval, lakatos2025investigating}, though shared representations for classification and retrieval hurt performance and lead to training instability \cite{liang2023retrieval}.
+This motivates the exploration of multiple density-aware scoring heuristics to improve retrieval-based classification robustness.
+
+To address class overlap in imbalanced neighborhoods, density normalization strategies like adaptive k-nearest neighbor methods have proven effective \cite{yuan2021novel,kim2021normalized}.
+More recently, proximity ratio techniques combined with density-aware weighting schemes have shown improvements on imbalanced classification tasks \cite{amer2025effective}.
+
+While ChromaDB has become standard for RAC pipelines, its application to classification tasks with density-aware scoring remains unexplored.
+Additionally, no prior work has systematically evaluated multimodal RAC robustness under controlled imbalance stress tests or characterized performance scaling with memory growth.
 
 
 \section{Dataset}
