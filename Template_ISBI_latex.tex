@@ -78,11 +78,11 @@ Multimodal Lerning, Garbage Classification, RAC (Retrieval-Augmented Classificat
 \section{Introduction}
 \label{sec:intro}
 
-Garbage classification is an intriguing field that offers a good opportunity for applied multimodal classification tasks, as waste management facilities regularly use machine learning \cite{alexakis2025enhanced} to sort garbage according to some predefined criteria. Deep learning (DL) models have been a popular choice in multimodal classification due to their ability to learn from heterogeneous data sources such as images and text and being more adaptable for complex patterns in both unimodal and multimodal scenarios. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems \cite{alexakis2025enhanced}. However, these supervised approaches may face limitations under challenging conditions such as class imbalance, limited training data or domain drift. Those conditions often require rigorous training, normalization, complex feature engineering, augmentation, or re-training an existing model - which means a penalty of computational resources on top of an already extensive dataset required for these models to work properly \cite{islam2026learning}.
+Garbage classification is an intriguing field that offers a good opportunity for applied deep learning (DL) multimodal classification tasks, as waste management facilities regularly use machine learning \cite{alexakis2025enhanced} to sort garbage according to some predefined criteria. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems \cite{alexakis2025enhanced}. However, challenging conditions such as class imbalance, limited training data or domain drift often require rigorous training, normalization, complex feature engineering, augmentation, or re-training an existing model. This adds a significant computational cost \cite{islam2026learning}.
 
-An alternative approach is retrieval-augmented classification (RAC), which utilizes embedding-based memory to retrieve similar instance and make predictions based on neighborhood evidence. This allows the model to incorporate additional contextual information beyond the training distribution but introduces challenges in retrieval design and scoring. Despite increasing interest in such methods, a systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In our work, a two-phase framework is presented to evaluate both strategies for multimodal garbage classification, with experiments conducted under standard settings, class imbalance, and varying memory size to analyze performance, robustness, and generalization. Implemented with modern vector databases like Chroma, Pinecone, LanceDB, and PGVector - RAC only has a storage overhead, which is much cheaper than memory in terms of hardware price. 
+An alternative approach is retrieval-augmented classification (RAC), which utilizes embeddings to retrieve similar instance and make predictions based on neighborhood evidence. This allows to incorporate additional contextual information beyond training, but introduces challenges in retrieval strategies. A systematic comparison between traditional supervised inference and retrieval-based approaches remains limited, despite the potential. In our work, a two-phase experiment evaluates both strategies for multimodal garbage classification, with experiments conducted under standard settings, class imbalance, and varying instance size to analyze performance, robustness, and generalization. Implemented with modern vector databases, RAC only has a storage overhead, which is much cheaper than memory in terms of hardware price. 
 
-To address the challenges in retrieval design and scoring, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain drift by taking into account class distributions in various ways. This DNDS has 3 variants (which ultimately makes it 3 heuristics) that we studied in this work - Global DNDS, Local DNDS, and KDE DNDS (The details of which are discussed in \autoref{sec:methodology}). This DNDS heuristic is dynamic (works well even with continuously increasing database size), designed to work with cosine distances with high-dimensional vector embedding, and corrects itself for class skewness. Throughout this study, we focused more over evaluating these 3 variants of the DNDS heuristic, with a traditional deep learning approach involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQ), that we tried to answer in this study is as follows:  
+To address the challenges in retrieval strategies, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain drift by taking into account class distributions in various ways. This DNDS has 3 variants that we studied in this work - Global DNDS, Local DNDS, and KDE DNDS (discussed in \autoref{sec:methodology}). This DNDS heuristic is dynamic, designed to work with existing cosine heuristics \cite{xie2023brief}, and corrects itself for class skewness. Throughout this study, we evaluated these 3 variants of the DNDS heuristic, with a traditional deep learning involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQ) for this study are as follows:  
 
 \begin{itemize}
   \item \textbf{RQ 1}: Does DNDS have better performance compared to traditional deep learning methods for classification? 
@@ -171,6 +171,7 @@ $N_m(c')$ & Count all instances \\
 \end{table}
 
 \subsection{Combining Modality}
+\label{subsec:combining modality}
 
 In both the traditional approach and RAC approach, the two modalities - image and text were independently accounted for classification, with their individual classification weights combined for the final prediction, $\hat{y}$.
 
@@ -190,9 +191,9 @@ While traditional works with class weights ($W_{image}, W_{text}$) and RAC works
 
 \subsection{The Traditional Approach}
 
-The traditional approach refers to the use of supervised deep learning methods for multimodal classification. For the image model, we selected MobileNetV3 as it offers a good balance between accuracy and efficiency \cite{howard2019searching}. For the classification head, a 3 layer neural network was used with $(960 \times 512)$, $(512 \times 256)$, and $(256 \times 4)$ layer sizes respectively. Since we used a pre-trained variant (on ImageNet dataset \cite{deng2009imagenet}) of MobileNetV3, we only needed to train the classification head (transfer learning). 
+The traditional approach refers to the use of supervised deep learning methods for multimodal classification. For the image model, we selected MobileNetV3 as it offers a good balance between accuracy and efficiency \cite{howard2019searching}. This model is based on the CNN (Convolutional Neural Network) architecture.
 
-On the other hand, DistilBERT was used for classification. DistilBERT is a very lightweight transformer architecture model that shows good performance for text related tasks \cite{sanh2019distilbert}. Since our text labels for images are small, there would be no problem related to the small token window of DistilBERT. DistilBERT was paired with a linear classification layer with size of $(768 \times 4)$. Like MobileNetV3, DistilBERT is also a pre-trained model over Wikipedia \cite{wikidump} and BookCorpus \cite{Zhu_2015_ICCV} datasets, and only required the classification head to be fine-tuned. 
+On the other hand, DistilBERT was used for classification. DistilBERT is a very lightweight transformer architecture model that shows good performance for text related tasks \cite{sanh2019distilbert}. Since our text labels for images are small, there would be no problem related to the small token window of DistilBERT.
 
 % NOTE Add this later on in discussion
 % Note that we did not use state-of-the-art heavy models, as most waste processing plants have limited resources for computing, and we wanted to match those constraints \cite{samson2026lightweight} \cite{farshadfar2025machine}. The usage of pre-trained model already offloads a lot of computational overhead for training.
@@ -246,7 +247,23 @@ KDE DNDS combines the strengths of Local DNDS and Global DNDS, by emphasizing mo
 \section{Experiment Setup}
 \label{sec:experiment setup}
 
-The experiment was done in 2 phases. Phase 1 consisted of training the traditional methods, and phase 2 consisted of various experiments with RAC heuristics. All models and methods were evaluated under consistent settings. Hyperparameters such as fusion weight $(\alpha)$, neighborhood size $(k)$, and KDE bandwidth $h$ were tuned using validation set. Various metrics were used to evaluate performance, with emphasis being on accuracy, F1 score, and inference time (in milliseconds). Since F1 score cumulates precision and recall, it is an ideal metric for measuring classification robustness, especially when there is an imbalance present. Hence, some results are reported purely based on F1 score.
+The experiment was done in 2 phases. Phase 1 consisted of training the traditional methods, and phase 2 consisted of various experiments with RAC heuristics. Cross validation, and hyperparameters. Various metrics were used to evaluate performance, with emphasis being on accuracy, F1 score, and inference time (in milliseconds). Since F1 score cumulates precision and recall, it is an ideal metric for measuring classification robustness, especially when there is an imbalance present. Hence, some results are reported purely based on F1 score. For the detailed code, one may refer to this repository: \url{https://github.com/NotAlpha45/trash-classification-project}. All of the reported results in \autoref{sec:results}, was ran on the test set. 
+
+\subsection{Phase 1}
+
+Here, MobileNetV3 was paired with a 3 layer FCNN (Fully Connected Neural Network) classification head with layer sizes of $(960 \times 512)$, $(512 \times 256)$, and $(256 \times 4)$ respectively. During training, various image transformation strategies were implemented for robustness, such as - flipping, rotation, color jitter, and affine. Since we used a pre-trained variant (on ImageNet dataset \cite{deng2009imagenet}) of MobileNetV3, we only needed to train the classification head (transfer learning \cite{si2023apple}).
+
+Like MobileNetV3, DistilBERT is also a pre-trained model over Wikipedia \cite{wikidump} and BookCorpus \cite{Zhu_2015_ICCV} datasets, and only required the classification head to be fine-tuned. For this experiment, a linear FCNN classification head was paired with DistilBERT - which is a very common set-up, when using the sequence classifier variant of the model, available through HuggingFace Transformers library in python \cite{huggingface_distilbert}. No further text transformation techniques were used here, as such augmentations require special techniques \cite{bayer2022survey}, and it is beyond the scope of this study. 
+
+After individual training of the text and image models, they were combined according to \autoref{subsec:combining modality}. 
+
+\subsection{Phase 2}
+
+Phase 2 was done in 6 steps. In the first step, the test data was ingested into the vector database, with image and text having different collections. With each entry, it's label was included as ``label'' metadata
+
+
+% For the classification head, a 3 layer neural network was used with $(960 \times 512)$, $(512 \times 256)$, and $(256 \times 4)$ layer sizes respectively
+% DistilBERT was paired with a linear classification layer with size of $(768 \times 4)$
 
 
 
@@ -286,6 +303,7 @@ The experiment was done in 2 phases. Phase 1 consisted of training the tradition
 % \end{figure}
 
 \section{Results}
+\label{sec:results}
 Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
 
 \section{Discussion}
