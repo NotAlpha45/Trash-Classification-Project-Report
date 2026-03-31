@@ -186,7 +186,7 @@ And, for RAC:
   $\hat{y} = \argmax_{c}(S_{fused}(c))$
 \end{center}
 
-While traditional works with class weights ($W_{image}, W_{text}$) and RAC works with class retrieval scores ($S_{image}(c), S_{text}(c)$), the underlying contribution hyperparameter $\alpha \in [0,1]$ has the same meaning. In traditional, softmax is used to convert weights to probabilities. In RAC, just the maximum score (argmax) is taken. The hyperparameter $\alpha$ started as 0.5, and was tuned when needed to extract the best classification performance.
+While traditional works with class weights ($W_{image}, W_{text}$) and RAC works with class retrieval scores ($S_{image}(c), S_{text}(c)$), the underlying contribution hyperparameter $\alpha \in [0,1]$ has the same meaning.
 
 \subsection{The Traditional Approach}
 
