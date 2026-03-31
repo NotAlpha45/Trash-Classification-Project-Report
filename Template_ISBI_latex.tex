@@ -113,7 +113,7 @@ Additionally, no prior work has systematically evaluated multimodal RAC robustne
 
 The multimodal garbage dataset by Cazarin Filho et. al. \cite{cazarin2025garbage} was used for training, validation, and testing of both the traditional and RAC approach. The dataset has 4 categories: Black (3459 instances, non-recyclable/non-compostable items), Blue (6720 instances, recyclable items), Green (3492 instances, compostable items), and TTR (3286 instances, other/e-waste items). The consists of images of various trash, with the image file names being a short description of the image, acting as an additional modality.
 
-The training subset has significant class imbalance, which presents a challenge for both the traditional approach and multimodal approach, as seen in \autoref{fig:train-set-distribution}.  
+The training subset has significant class imbalance, which presents a challenge for both the traditional approach and multimodal approach, with nearly twice the instances of Blue, as seen in \autoref{fig:train-set-distribution}.  
 
 Chroma \cite{chromadb} was used for the vector database. During the experiments, the dataset was used in various ways, from training to simulating class imbalance, the details of which are in \autoref{sec:experiment setup}.
 
@@ -192,7 +192,7 @@ On the other hand, DistilBERT was used for classification. DistilBERT is a very 
 
 \subsection{The RAC Approach}
 
-The RAC approach works in the premise of vector similarity search, with cosine similarity being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. Now, the scoring heuristics (for a given modality $m$ and a class $c$) used in this work are as follows: \\\\
+The RAC approach works in the premise of vector similarity search, with cosine distance being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. Now, the scoring heuristics (for a given modality $m$ and a class $c$) used in this work are as follows: \\\\
 Majority Vote:
 \begin{center}
     $S_{m}(c) = S_m(c) = \sum_{i \in N_k^{(m)}(q)} \mathbf{1}[y_i = c]$
@@ -227,9 +227,9 @@ Kernel Density Estimated Density Normalized Distance Score (KDE DNDS):
   {{\tilde{\rho}_m(c)}}$
 \end{center} 
 
-One can refer to \autoref{tab:notation} for the notations used throughout the paper. It is important to note here that all of the DNDS variants builds on the IDW strategy, where the cosine distance is inverted for a kind of ``similarity score''. DNDS variants normalize the score based on class density in different strategies.
+Note that, all of the DNDS variants builds on the IDW strategy, where the cosine distance is inverted for a ``similarity score''.
 
-Global DNDS is the most easiest strategy, where the normalization simply considers a class's overall density in the database. The higher the density for a class, the more imbalanced that class is, and the heavier the penalization for that class's score is. It is also the most efficient, with $O(1)$ complexity, as maintaining a counter for the classes can help in calculating $N_m(c)$ and $N_m(c')$ in constant time.
+With Global DNDS, normalization simply considers a class's overall density in the database. The higher the density for a class, the more imbalanced that class is, and the heavier the penalization for that class's score is. It is also the most efficient, with $O(1)$ complexity, as maintaining a counter for the classes can help in calculating $N_m(c)$ and $N_m(c')$ in constant time.
 
 Local DNDS calculates the density over a local neighborhood, $ \{ i \in \mathcal{N}_{K_{density}}^{(m)}(q) : y_i = c \} $, near query $q$, instead of the entire database. This addresses a key weakness of Global DNDS - a class, $c$, may be globally sparse, but locally dense near $q$, which causes Global DNDS to over-amplify the weight of $c$, despite it's strong local presence. By fixating the density estimate to a local neighborhood, Local DNDS corrects itself for this locality problem. However, the neighborhood size $K_{density}$ is a very sensitive hyperparameter. If $K_{\text{density}}$ is too small compared to the database size and the spread of class instances, some classes will have near zero representations in the neighborhood, causing their density estimate to collapse. A more detailed discussion on fine-tuning the value of $K_{\text{density}}$ is discussed in \autoref{sec:experiment setup}.
 
