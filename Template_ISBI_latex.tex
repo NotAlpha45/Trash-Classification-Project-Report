@@ -268,26 +268,34 @@ Finally, in the fifth step, the RAC approaches were tested for continual learnin
 \section{Results}
 \label{sec:results}
 
-\begin{table*}[!t]
-\begin{tabular}{lccccc}
-\toprule
+\begin{table}[!htbp]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
 Method & Accuracy (\%) & $\Delta$ Accuracy (\%) & Macro-F1 (\%) & $\Delta$ Macro-F1 (\%) & Latency (ms) \\
-\midrule
+\hline
 Traditional & 81.14 & +0.00 & 80.80 & +0.00 & 1.46 \\
-RAC-Global-DNDS & \textbf{85.25} & \textbf{+4.11} & \textbf{84.81} & \textbf{+4.01} & 412.54 \\
-RAC-KDE-DNDS & 85.23 & +4.08 & 84.80 & +3.99 & 925.54 \\
-RAC-IDW & 83.72 & +2.58 & 83.19 & +2.39 & 123.72 \\
-RAC-MajorityVote & 82.94 & +1.80 & 82.36 & +1.56 & 125.34 \\
-RAC-Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
-\bottomrule
-\end{tabular}
+\hline
+Global-DNDS & \textbf{85.25} & \textbf{+4.11} & \textbf{84.81} & \textbf{+4.01} & 412.54 \\
+\hline
+KDE-DNDS & 85.23 & +4.08 & 84.80 & +3.99 & 925.54 \\
+\hline
+IDW & 83.72 & +2.58 & 83.19 & +2.39 & 123.72 \\
+\hline
+MajorityVote & 82.94 & +1.80 & 82.36 & +1.56 & 125.34 \\
+\hline
+Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
+\hline
+\end{tabular}%
+}
 \caption{Comparison of RAC variants against the traditional baseline.\\Accuracy and $\Delta$ Accuracy values are taken from the no-alpha evaluation artifact}
 \label{tab:rac_vs_traditional_compact}
-\end{table*}
+\end{table}
 
 In this section, the results are briefly discussed with limited figures and tables. For more figures, refer to Appendix.
 
-The \autoref{tab:rac_vs_traditional_compact} clearly shows that RAC triumphs the traditional methods, especially Global DNDS and KDE DNDS, having the highest delta gain in terms of both accuracy and F1 score. Which is further re-enforced by the per class F1 Score delta heatmap in \autoref{fig:per-class-f1-delta}.
+The \autoref{tab:rac_vs_traditional_compact} clearly shows that RAC triumphs the traditional methods, especially Global DNDS and KDE DNDS, having the highest delta gain in terms of both accuracy and F1 score. Which is further re-enforced by the per class F1 Score delta heatmap in \autoref{fig:per-class-f1-delta}. However, in inference time, the traditional method still triumphs. 
 
 % Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
 
