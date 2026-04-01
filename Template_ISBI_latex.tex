@@ -7,6 +7,12 @@
 \usepackage{spconf,amsmath,graphicx}
 \usepackage{hyperref}
 \usepackage{appendix}
+\usepackage{booktabs}
+
+% Keep double-column float pages top-aligned (not vertically centered).
+\makeatletter
+\setlength{\@dblfptop}{0pt}
+\makeatother
 
 % It's fine to compress itemized lists if you used them in the
 % manuscript
@@ -262,16 +268,26 @@ Finally, in the fifth step, the RAC approaches were tested for continual learnin
 \section{Results}
 \label{sec:results}
 
+\begin{table*}[!t]
+\begin{tabular}{lccccc}
+\toprule
+Method & Accuracy (no-alpha) & $\Delta$ Accuracy & Macro-F1 & $\Delta$ Macro-F1 & Latency (ms) \\
+\midrule
+Traditional & 0.8114 & +0.0000 & 0.8080 & +0.0000 & 1.46 \\
+RAC-Global-DNDS & \textbf{0.8525} & \textbf{+0.0411} & \textbf{0.8481} & \textbf{+0.0401} & 412.54 \\
+RAC-KDE-DNDS & 0.8523 & +0.0408 & 0.8480 & +0.0399 & 925.54 \\
+RAC-IDW & 0.8372 & +0.0258 & 0.8319 & +0.0239 & 123.72 \\
+RAC-MajorityVote & 0.8294 & +0.0180 & 0.8236 & +0.0156 & 125.34 \\
+RAC-Local-DNDS & 0.8218 & +0.0104 & 0.8176 & +0.0096 & 347.57 \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of RAC variants against the traditional baseline.\\Accuracy and $\Delta$ Accuracy values are taken from the no-alpha evaluation artifact}
+\label{tab:rac_vs_traditional_compact}
+\end{table*}
+
 In this section, the results are briefly discussed with limited figures and tables. For more figures, refer to Appendix.
 
-The \autoref{fig:per-class-f1-delta} clearly shows that RAC triumphs the traditional methods, especially Global DNDS and KDE DNDS, having the highest delta gain. Which is further re-enforced by   
-
-\begin{figure}
-\centering
-\centerline{\includegraphics[width=\linewidth]{images/per_class_f1_delta.png}}
-\caption{Heatmap of per-class F1 score differences between traditional approach and RAC variants}
-\label{fig:per-class-f1-delta}
-\end{figure}
+The \autoref{tab:rac_vs_traditional_compact} clearly shows that RAC triumphs the traditional methods, especially Global DNDS and KDE DNDS, having the highest delta gain in terms of both accuracy and F1 score. Which is further re-enforced by the heatmap in \autoref{fig:per-class-f1-delta}.
 
 % Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
 
@@ -303,6 +319,7 @@ Overall, the results suggest the retrieval-augmented classification offers a mor
 \bibliographystyle{IEEEbib}
 \bibliography{strings,refs}
 \clearpage
+\onecolumn
 \appendix
 
 \section*{APPENDIX}
@@ -313,9 +330,16 @@ Overall, the results suggest the retrieval-augmented classification offers a mor
   
 \begin{figure}[htb]
 \centering
-\centerline{\includegraphics[width=\linewidth]{images/train_set_distribution.png}}
+\centerline{\includegraphics[width=0.6\linewidth]{images/train_set_distribution.png}}
 \caption{Class distribution in the training set}
 \label{fig:train-set-distribution}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\centerline{\includegraphics[width=\linewidth]{images/per_class_f1_delta.png}}
+\caption{Heatmap of per-class F1 score differences between traditional approach and RAC variants}
+\label{fig:per-class-f1-delta}
 \end{figure}
 
 
