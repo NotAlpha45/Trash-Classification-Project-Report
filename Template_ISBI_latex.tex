@@ -416,20 +416,20 @@ traditional    & 81.14 & 81.14 & +0.00 & 80.80 & 80.80 & +0.00 \\
 
 \begin{table}[!htb]
 \centering
-\begin{tabular}{|l|c|c|c|c|}
+\begin{tabular}{|l|r|r|c|c|c|c|}
 \hline
-Class & Mean Cosine Distance & Std & Min & Max \\
+Class & Samples ($n$) & Pairs & Mean & Std & Min & Max \\
 \hline
-Black & 0.556 & 0.117 & 0.075 & 0.945 \\
+Black & 2382 & 2835771  & 0.548 & 0.119 & 0.000 & 0.990 \\
 \hline
-Blue  & 0.526 & 0.110 & 0.100 & 0.940 \\
+Blue  & 4856 & 11787940 & 0.534 & 0.109 & 0.000 & 1.003 \\
 \hline
-Green & 0.459 & 0.104 & 0.086 & 0.848 \\
+Green & 2331 & 2715615  & 0.467 & 0.102 & 0.000 & 0.965 \\
 \hline
-TTR   & 0.613 & 0.127 & 0.095 & 0.970 \\
+TTR   & 2116 & 2237670  & 0.615 & 0.126 & 0.000 & 1.054 \\
 \hline
 \end{tabular}
-\caption{Within-class pairwise cosine-distance statistics of image embeddings (sample size capped at 200 per class). Lower mean indicates tighter class compactness in embedding space.}
+\caption{Within-class pairwise cosine-distance statistics of image embeddings. Lower mean indicates tighter class compactness in embedding space.}
 \label{tab:embedding_distance_stats}
 \end{table}
 
