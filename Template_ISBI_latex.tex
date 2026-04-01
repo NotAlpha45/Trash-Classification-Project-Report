@@ -414,6 +414,25 @@ traditional    & 81.14 & 81.14 & +0.00 & 80.80 & 80.80 & +0.00 \\
 \label{tab:verified_tuned_vs_noalpha}
 \end{table}
 
+\begin{table}[!htb]
+\centering
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+Class & Mean Cosine Distance & Std & Min & Max \\
+\hline
+Black & 0.556 & 0.117 & 0.075 & 0.945 \\
+\hline
+Blue  & 0.526 & 0.110 & 0.100 & 0.940 \\
+\hline
+Green & 0.459 & 0.104 & 0.086 & 0.848 \\
+\hline
+TTR   & 0.613 & 0.127 & 0.095 & 0.970 \\
+\hline
+\end{tabular}
+\caption{Within-class pairwise cosine-distance statistics of image embeddings (sample size capped at 200 per class). Lower mean indicates tighter class compactness in embedding space.}
+\label{tab:embedding_distance_stats}
+\end{table}
+
 \end{appendices}
 % References should be produced using the bibtex program from suitable
 % BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
