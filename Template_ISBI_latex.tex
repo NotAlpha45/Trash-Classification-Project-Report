@@ -127,51 +127,10 @@ Chroma \cite{chromadb} was used for the vector database. During the experiments,
 \section{Methodology}
 \label{sec:methodology}
 
-\begin{table}[h]
-\centering
-\begin{tabular}{|c|l|}
-\hline
-\textbf{Symbol} & \textbf{Meaning} \\
-\hline
-$q$ & query sample \\
-\hline
-$m \in \{I, T\}$ & modality (image or text) \\
-\hline
-$\mathcal{N}^{(m)}_k(q)$ & top-$k$ neighbors of $q$ in modality $m$ \\
-\hline
-$d_i^{(m)}$ & retrieval distance of neighbor $i$ \\
-\hline
-$y_i$ & class label of neighbor $i$ \\
-\hline
-$k_{vote}$ & Voting/scoring candidates (10 is used here) \\
-\hline
-$K_{density}$ & local density neighborhood size \\
-\hline
-$\rho_m(c)$ & global class density in modality $m$ \\
-\hline
-$\rho_m^{local}(c)$ & local class density around query \\
-\hline
-$\tilde{\rho}_m(c)$ & KDE-smoothed class density \\
-\hline
-$h$ & KDE bandwidth \\
-\hline
-$\alpha$ & image-text fusion weight \\
-\hline
-$\epsilon$ & numerical stability constant \\
-\hline
-$N_m(c)$ & Count of instances of class $c$ \\
-\hline
-$N_m(c')$ & Count all instances \\
-\hline
-\end{tabular}
-\caption{Notation and symbol definitions used throughout the paper.}
-\label{tab:notation}
-\end{table}
-
 \subsection{Combining Modality}
 \label{subsec:combining modality}
 
-In both the traditional approach and RAC approach, the two modalities - image and text were independently accounted for classification, with their individual classification weights combined for the final prediction, $\hat{y}$.
+In both the traditional approach and RAC approach, the two modalities - image and text were independently accounted for classification, with their individual classification weights combined for the final prediction, $\hat{y}$. (For the notations used throughout the paper, refer to \autoref{tab:notation} in \autoref{appendix})
 
 For traditional:
 \begin{center}
@@ -201,36 +160,29 @@ On the other hand, DistilBERT was used for classification. DistilBERT is a very 
 The RAC approach works in the premise of vector similarity search, with cosine distance being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. Now, the scoring heuristics (for a given modality $m$ and a class $c$) used in this work are as follows: \\\\
 Majority Vote:
 \begin{center}
-    $S_{m}(c) = S_m(c) = \sum_{i \in N_k^{(m)}(q)} \mathbf{1}[y_i = c]$
+    $S_m(c) = \sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q)} \mathbf{1}[y_i = c]$
 \end{center} 
 Inverse Distance Weighting (IDW):
 \begin{center}
-      $S_{m}(c) = S_m(c) = \sum_{i \in N_k^{(m)}(q),y_{i}=c} \frac{1}{d_k^{m} + \epsilon} $
+      $S_m(c) = \sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q),\, y_i=c} \frac{1}{d_i^{(m)} + \epsilon} $
 \end{center} 
 Global Density Normalized Distance Score (Global DNDS):
 \begin{center}
   $\rho_m(c) = \frac{N_m(c)}{\sum_{c'} N_m(c')}$ \\
-  $S_m(c) = \sum_{\substack{i \in \mathcal{N}_k^{(m)}(q) \\ y_i = c}} 
-  \frac{1}{\left(d_i^{(m)} + \epsilon\right)\,\rho_m(c)}$
+  $S_m^{global}(c) = \frac{\sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q),\, y_i=c} \frac{1}{d_i^{(m)} + \epsilon}}{\rho_m(c)}$
 \end{center} 
 Local Density Normalized Distance Score (Local DNDS):
 \begin{center}
   $\rho_m^{local}(c) = 
   \frac{\left| \{ i \in \mathcal{N}_{K_{density}}^{(m)}(q) : y_i = c \} \right|}
   {K_{density}}$,\\
-  $S_m(c) = 
-  \frac{
-  \sum_{\substack{i \in \mathcal{N}_k^{(m)}(q) \\ y_i = c}} 
-  \frac{1}{d_i^{(m)} + \epsilon}
-  }
-  {\rho_m^{local}(c)}$
+  $S_m^{local}(c) = \frac{\sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q),\, y_i=c} \frac{1}{d_i^{(m)} + \epsilon}}{\rho_m^{local}(c)}$
 \end{center}
 Kernel Density Estimated Density Normalized Distance Score (KDE DNDS):
 \begin{center}
   $\tilde{\rho}_m(c) = \sum_{j : y_j = c} 
   \exp\left( -\frac{\left(d_j^{(m)}\right)^2}{2h^2} \right)$, \\ \vspace{10pt}
-  $S_m(c) =\frac{\sum_{\substack{i \in \mathcal{N}_k^{(m)}(q),,  y_i = c \frac{1}{d_i^{(m)} + \epsilon}}}} 
-  {{\tilde{\rho}_m(c)}}$
+  $S_m^{kde}(c) = \frac{\sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q),\, y_i=c} \frac{1}{d_i^{(m)} + \epsilon}}{\tilde{\rho}_m(c)}$
 \end{center} 
 
 Note that, all of the DNDS variants builds on the IDW strategy, where the cosine distance is inverted for a ``similarity score''.
@@ -245,7 +197,7 @@ KDE DNDS combines the strengths of Local DNDS and Global DNDS. It does not abrup
 \section{Experiment Setup}
 \label{sec:experiment setup}
 
-The experiment was done in 2 phases. Phase 1 involved the traditional methods, and phase 2 involved the RAC heuristics. Various metrics were used to evaluate performance, with emphasis being on accuracy, F1 score, and inference time (in milliseconds). Since F1 score cumulates precision and recall, it is an ideal metric for measuring classification robustness, especially with training data imbalance. Hence, some results are reported purely based on F1 score. All of the reported results in \autoref{sec:results}, was ran on the test set. After both phases, the results were analyzed to answer all the RQs.
+The experiment was done in 2 phases. Phase 1 involved the traditional methods, and phase 2 involved the RAC heuristics. F1 score and inference time were the key performance metrics, as they provide the best insight for classification performance and inference performance respectively. All the results are based on the test set.
 
 \subsection{Phase 1}
 
@@ -289,13 +241,13 @@ Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
 \hline
 \end{tabular}%
 }
-\caption{Comparison of RAC variants against the traditional baseline.\\Accuracy and $\Delta$ Accuracy values are taken from the no-alpha evaluation artifact}
+\caption{Comparison of RAC variants against the traditional baseline}
 \label{tab:rac_vs_traditional_compact}
 \end{table}
 
 In this section, the results are briefly discussed with limited figures and tables. For more figures, refer to Appendix.
 
-The \autoref{tab:rac_vs_traditional_compact} clearly shows that RAC triumphs the traditional methods, especially Global DNDS and KDE DNDS, having the highest delta gain in terms of both accuracy and F1 score. Which is further re-enforced by the per class F1 Score delta heatmap in \autoref{fig:per-class-f1-delta}. However, in inference time, the traditional method still triumphs. 
+The \autoref{tab:rac_vs_traditional_compact} clearly shows that RAC triumphs the traditional methods, especially Global DNDS and KDE DNDS, having the highest delta gain in terms of both accuracy and F1 score. Which is further re-enforced by the per class F1 Score delta heatmap in \autoref{fig:per-class-f1-delta}. However, in inference time, the traditional method still triumphs, whereas KDE DNDS takes the most toll (also refer \autoref{fig:effectiveness-vs-efficiency}). Note that the results reported in \autoref{tab:rac_vs_traditional_compact} used $\alpha = 0.5$, the $\alpha$ was not fine tuned. Even with $\alpha$ tuning, there was no gain (refer \autoref{tab:verified_tuned_vs_noalpha}). Ablation study for KDE DNDS bandwidth $h$, showed that beyond 0.2, $h$ reaches an almost plateau, with 0.5 being the highest, even though not by much difference (refer \autoref{fig:kde-ablation}). Which coincidentally is the same as the default $h$ which was selected. The values of $\alpha = 0.5$ and $h = 0.5$ were selected as default values as they fall right in the middle of their range - $ \alpha, h \in [0, 1]$.
 
 % Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
 
@@ -328,29 +280,117 @@ Overall, the results suggest the retrieval-augmented classification offers a mor
 \bibliography{strings,refs}
 \clearpage
 \onecolumn
-\appendix
 
-\section*{APPENDIX}
+\begin{appendices}
+  
+
+
+\section{APPENDIX}
 \label{appendix}
 
 
 \subsection*{Various Figures}
   
-\begin{figure}[htb]
+\begin{figure}[!htb]
 \centering
 \centerline{\includegraphics[width=0.6\linewidth]{images/train_set_distribution.png}}
 \caption{Class distribution in the training set}
 \label{fig:train-set-distribution}
 \end{figure}
 
-\begin{figure}[htb]
+\begin{figure}[!htb]
 \centering
-\centerline{\includegraphics[width=\linewidth]{images/per_class_f1_delta.png}}
+\centerline{\includegraphics[width=0.7\linewidth]{images/per_class_f1_delta.png}}
 \caption{Heatmap of per-class F1 score differences between traditional approach and RAC variants}
 \label{fig:per-class-f1-delta}
 \end{figure}
 
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=0.7\linewidth]{images/effectiveness_vs_efficiency.png}}
+\caption{Effectiveness vs efficiency for traditional and RAC variants}
+\label{fig:effectiveness-vs-efficiency}
+\end{figure}
 
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=0.7\linewidth]{images/kde_ablation.png}}
+\caption{KDE DNDS bandwidth ablation against F1 score}
+\label{fig:kde-ablation}
+\end{figure}
+
+\clearpage
+
+\subsection*{Various Tables}
+
+
+\begin{table}[!htb]
+\centering
+\begin{tabular}{|c|l|}
+\hline
+\textbf{Symbol} & \textbf{Meaning} \\
+\hline
+$q$ & query sample \\
+\hline
+$m \in \{I, T\}$ & modality (image or text) \\
+\hline
+$\mathcal{N}^{(m)}_{k_{vote}}(q)$ & top-$k_{vote}$ neighbors of $q$ in modality $m$ \\
+\hline
+$d_i^{(m)}$ & retrieval distance of neighbor $i$ \\
+\hline
+$y_i$ & class label of neighbor $i$ \\
+\hline
+$k_{vote}$ & Voting/scoring candidates (10 is used here) \\
+\hline
+$K_{density}$ & local density neighborhood size \\
+\hline
+$\rho_m(c)$ & global class density in modality $m$ \\
+\hline
+$\rho_m^{local}(c)$ & local class density around query \\
+\hline
+$\tilde{\rho}_m(c)$ & KDE-smoothed class density \\
+\hline
+$h$ & KDE bandwidth \\
+\hline
+$\alpha$ & image-text fusion weight \\
+\hline
+$\epsilon$ & numerical stability constant \\
+\hline
+$N_m(c)$ & Count of instances of class $c$ \\
+\hline
+$N_m(c')$ & Count all instances \\
+\hline
+\end{tabular}
+\caption{Notation and symbol definitions used throughout the paper.}
+\label{tab:notation}
+\end{table}
+
+\begin{table}[!htb]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{|l|r|r|r|r|r|r|}
+\hline
+Method & Accuracy(T) & Accuracy(NT) & $\Delta$Accuracy & Macro F1(T) & Macro F1(NT) & $\Delta$Macro F1 \\
+\hline
+majority\_vote & 82.94 & 82.94 & +0.00 & 82.36 & 82.36 & +0.00 \\
+\hline
+idw            & 83.72 & 83.72 & +0.00 & 83.19 & 83.19 & +0.00 \\
+\hline
+global\_dnds   & 85.25 & 85.25 & +0.00 & 84.81 & 84.81 & +0.00 \\
+\hline
+local\_dnds    & 81.72 & 82.18 & -0.46 & 81.31 & 81.76 & -0.45 \\
+\hline
+kde\_dnds      & 85.23 & 85.23 & +0.00 & 84.80 & 84.80 & +0.00 \\
+\hline
+traditional    & 81.14 & 81.14 & +0.00 & 80.80 & 80.80 & +0.00 \\
+\hline
+\end{tabular}%
+}
+\caption{Comparison between tuned $\alpha$ (T) and not tuned $\alpha$ (NT) for RAC variants}
+\label{tab:verified_tuned_vs_noalpha}
+\end{table}
+
+\end{appendices}
 % References should be produced using the bibtex program from suitable
 % BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
 % style file from IEEE produces unsorted bibliography list.
