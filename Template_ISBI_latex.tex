@@ -249,6 +249,8 @@ In this section, the results are briefly discussed with limited figures and tabl
 
 The \autoref{tab:rac_vs_traditional_compact} clearly shows that RAC triumphs the traditional methods, especially Global DNDS and KDE DNDS, having the highest delta gain in terms of both accuracy and F1 score. Which is further re-enforced by the per class F1 Score delta heatmap in \autoref{fig:per-class-f1-delta}. However, in inference time, the traditional method still triumphs, whereas KDE DNDS takes the most toll (also refer \autoref{fig:effectiveness-vs-efficiency}). Note that the results reported in \autoref{tab:rac_vs_traditional_compact} used $\alpha = 0.5$, the $\alpha$ was not fine tuned. Even with $\alpha$ tuning, there was no gain (refer \autoref{tab:verified_tuned_vs_noalpha}). Ablation study for KDE DNDS bandwidth $h$, showed that beyond 0.2, $h$ reaches an almost plateau, with 0.5 being the highest, even though not by much difference (refer \autoref{fig:kde-ablation}). Which coincidentally is the same as the default $h$ which was selected. The values of $\alpha = 0.5$ and $h = 0.5$ were selected as default values as they fall right in the middle of their range - $ \alpha, h \in [0, 1]$.
 
+For the imbalance experiment, 
+
 % Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
 
 \section{Discussion}
@@ -266,9 +268,10 @@ The \autoref{tab:rac_vs_traditional_compact} clearly shows that RAC triumphs the
 
 \section{Conclusion}
 \label{sec:conclusion}
-In this work, we investigated the effectiveness of supervised multimodal fusion and retrieval-augmented classification for garbage classification. We found that while supervised fusion models provide strong baseline performance, retrieval-based approaches, particularly density-aware methods, achieve improved accuracy and robustness. These methods demonstrate better performance under class imbalance and benefit from increased retrieval memory, indicating their scalability and adaptability.
+[WIP]
+% In this work, we investigated the effectiveness of supervised multimodal fusion and retrieval-augmented classification for garbage classification. We found that while supervised fusion models provide strong baseline performance, retrieval-based approaches, particularly density-aware methods, achieve improved accuracy and robustness. These methods demonstrate better performance under class imbalance and benefit from increased retrieval memory, indicating their scalability and adaptability.
 
-Overall, the results suggest the retrieval-augmented classification offers a more reliable and generalizable approach compared to traditional inference-based models. This highlights the importance of integrating retrieval mechanisms with multimodal learning for real-world classification tasks.
+% Overall, the results suggest the retrieval-augmented classification offers a more reliable and generalizable approach compared to traditional inference-based models. This highlights the importance of integrating retrieval mechanisms with multimodal learning for real-world classification tasks.
 
 % To start a new column (but not a new page) and help balance the last-page
 % column length use \vfill\pagebreak.
@@ -317,6 +320,13 @@ Overall, the results suggest the retrieval-augmented classification offers a mor
 \centerline{\includegraphics[width=0.7\linewidth]{images/kde_ablation.png}}
 \caption{KDE DNDS bandwidth ablation against F1 score}
 \label{fig:kde-ablation}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=0.7\linewidth]{images/kde_ablation.png}}
+\caption{F1 score vs imbalance ratio for all RAC variants}
+\label{fig:f1-vs-imbalance}
 \end{figure}
 
 \clearpage
