@@ -7,6 +7,12 @@
 \usepackage{spconf,amsmath,graphicx}
 \usepackage{hyperref}
 \usepackage{appendix}
+\usepackage{booktabs}
+
+% Keep double-column float pages top-aligned (not vertically centered).
+\makeatletter
+\setlength{\@dblfptop}{0pt}
+\makeatother
 
 % It's fine to compress itemized lists if you used them in the
 % manuscript
@@ -66,7 +72,7 @@
 %
 \begin{abstract}
 
-With the increasing use of multimodal data and specialized models for classification tasks, important questions arise regarding the effectiveness of traditional inference-based models versus retrieval-augmented approaches, especially when it comes to data skewness and domain drift. In this work, we compare supervised multimodal models with retrieval-augmented classification using 3 novel vector-based heuristics for a four-class garbage classification problem. Through our various experiments, we found that, while supervised fusion models provide strong baseline performance and inference velocity, retrieval-based methods, especially density-aware approaches, show improved robustness and better performance (upto 4\% in F1 Score, without any additional tuning).
+With the increasing use of multimodal data and specialized models for classification tasks, important questions arise regarding the effectiveness of traditional inference-based models versus retrieval-augmented approaches, especially when it comes to data skewness and domain shift. In this work, we compare supervised multimodal models with retrieval-augmented classification using 3 novel vector-based heuristics for a four-class garbage classification problem. Through our various experiments, we found that, while supervised fusion models provide strong baseline performance and inference velocity, retrieval-based methods, especially density-aware approaches, show improved robustness and better performance (upto 4.01\% in F1 Score, without any additional tuning).
 
 \end{abstract}
 %
@@ -78,11 +84,11 @@ Multimodal Lerning, Garbage Classification, RAC (Retrieval-Augmented Classificat
 \section{Introduction}
 \label{sec:intro}
 
-Garbage classification is an intriguing field that offers a good opportunity for applied multimodal classification tasks, as waste management facilities regularly use machine learning \cite{alexakis2025enhanced} to sort garbage according to some predefined criteria. Deep learning (DL) models have been a popular choice in multimodal classification due to their ability to learn from heterogeneous data sources such as images and text and being more adaptable for complex patterns in both unimodal and multimodal scenarios. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems \cite{alexakis2025enhanced}. However, these supervised approaches may face limitations under challenging conditions such as class imbalance, limited training data or domain drift. Those conditions often require rigorous training, normalization, complex feature engineering, augmentation, or re-training an existing model - which means a penalty of computational resources on top of an already extensive dataset required for these models to work properly \cite{islam2026learning}.
+Garbage classification is an intriguing field for applied deep learning (DL) multimodal classification tasks, as garbage management facilities regularly use machine learning \cite{alexakis2025enhanced} to sort garbage. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems \cite{alexakis2025enhanced}. However, challenging conditions such as class imbalance, limited training data or domain shift often require rigorous training, normalization, complex feature engineering, augmentation, or re-training an existing model. This adds a significant computational cost \cite{islam2026learning}.
 
-An alternative approach is retrieval-augmented classification (RAC), which utilizes embedding-based memory to retrieve similar instance and make predictions based on neighborhood evidence. This allows the model to incorporate additional contextual information beyond the training distribution but introduces challenges in retrieval design and scoring. Despite increasing interest in such methods, a systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In our work, a two-phase framework is presented to evaluate both strategies for multimodal garbage classification, with experiments conducted under standard settings, class imbalance, and varying memory size to analyze performance, robustness, and generalization. Implemented with modern vector databases like Chroma, Pinecone, LanceDB, and PGVector - RAC only has a storage overhead, which is much cheaper than memory in terms of hardware price. 
+An alternative approach is retrieval-augmented classification (RAC), which utilizes embeddings to retrieve similar instance and make predictions based on neighborhood evidence. This allows to incorporate a richer contextual information, but introduces challenges in retrieval strategies. A systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In our work, a two-phase experiment evaluates both strategies for multimodal garbage classification, under various challenging conditions. 
 
-To address the challenges in retrieval design and scoring, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain drift by taking into account class distributions in various ways. This DNDS has 3 variants (which ultimately makes it 3 heuristics) that we studied in this work - Global DNDS, Local DNDS, and KDE DNDS (The details of which are discussed in \autoref{sec:methodology}). This DNDS heuristic is dynamic (works well even with continuously increasing database size), designed to work with cosine distances with high-dimensional vector embedding, and corrects itself for class skewness. Throughout this study, we focused more over evaluating these 3 variants of the DNDS heuristic, with a traditional deep learning approach involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQ), that we tried to answer in this study is as follows:  
+To address the challenges in retrieval strategies, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain shift by taking into account class distributions in various ways. This DNDS has 3 variants that we studied in this work - Global DNDS, Local DNDS, and KDE DNDS (discussed in \autoref{sec:methodology}). This DNDS heuristic is dynamic, designed to work with existing cosine heuristics \cite{xie2023brief}, and corrects itself for class skewness. Throughout this study, we evaluated these 3 variants of the DNDS heuristic, with a traditional deep learning involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQs) for this study are as follows:  
 
 \begin{itemize}
   \item \textbf{RQ 1}: Does DNDS have better performance compared to traditional deep learning methods for classification? 
@@ -93,43 +99,264 @@ To address the challenges in retrieval design and scoring, we propose a novel he
 
 \section{Related Work}
 \label{sec:related work}
-Deep multimodal learning techniques are highly efficient for waste classification, outperforming single-modality approaches. 
-Feature-level fusion in fully connected layers outperforms decision-level strategies when leveraging deeply learned representations for waste sorting \cite{lu2022deep}, with late fusion demonstrating superior performance over early and intermediate fusion architectures \cite{bihler2023multi, willis2025exploring}. 
-These findings establish logit-level fusion as the state-of-the-art baseline for multimodal waste classification.
 
-Retrieval-augmented classification (RAC) leveraging k-NN retrieval during inference demonstrates consistent improvements over supervised baselines \cite{li2024kra}.
-However, supervised approaches face critical limitations when deployed on imbalanced real-world waste data. 
-RAC is particularly effective for minority classes in imbalanced datasets and domain adaptation scenarios \cite{long2022retrieval, lakatos2025investigating}, though shared representations for classification and retrieval hurt performance and lead to training instability \cite{liang2023retrieval}.
+For deep learning applications in garbage sorting, the work of Lu et. al., Bihler et. al., and Willis et. al. explore various multimodal fusion strategies. In their studies, feature-level fusion in fully connected layers outperformed decision-level strategies when leveraging deeply learned representations \cite{lu2022deep}, whereas late fusion demonstrated superior performance over early and intermediate fusion architectures \cite{bihler2023multi, willis2025exploring}. These findings establish logit-level fusion as the state-of-the-art baseline for multimodal garbage classification.
+
+Another work by Cazarin Filho et. al., achieved 86.14\% test accuracy by combining DistilBERT and EfficientNetV2-Medium with a novel Reverse Cross Attention (RCA) fusion mechanism, employing class-balanced weighting and staged fine-tuning \cite{cazarin2025garbage}. However, this approach of going beyond transfer learning and retraining pre-trained models with smaller learning rate trades increased computational cost for improved performance.
+
+However, Long et. al. and Lakatos et. al. showed that upervised approaches face critical limitations when deployed on imbalanced real-world garbage data, and RAC being very effective for minority classes in imbalanced datasets and domain adaptation scenarios \cite{long2022retrieval, lakatos2025investigating}.
+
+The work by Li et. al. explores RAC by leveraging k-NN (k-Nearest Neighbors) retrieval during inference, demonstrating consistent improvements over supervised baselines \cite{li2024kra}. However, Lian et. al. showed that shared representations for classification and retrieval hurt performance \cite{liang2023retrieval}.
+
 This motivates the exploration of multiple density-aware scoring heuristics to improve retrieval-based classification robustness.
 
-To address class overlap in imbalanced neighborhoods, density normalization strategies like adaptive k-nearest neighbor methods have proven effective \cite{yuan2021novel,kim2021normalized}.
-More recently, proximity ratio techniques combined with density-aware weighting schemes have shown improvements on imbalanced classification tasks \cite{amer2025effective}.
-
-While ChromaDB has become standard for RAC pipelines, its application to classification tasks with density-aware scoring remains unexplored.
-Additionally, no prior work has systematically evaluated multimodal RAC robustness under controlled imbalance stress tests or characterized performance scaling with memory growth.
+The works by Yuan et. al., and Kim et. al., explores density normalization strategies like adaptive k-NN, which have been proven effective \cite{yuan2021novel,kim2021normalized}. More recently, studies by Amer et. al. showed improvements on imbalanced classification tasks by combining proximity ratio and density-aware weighting schemes \cite{amer2025effective}.
 
 
 \section{Dataset}
 
-The CVPR 2024 trash classification dataset was used for training, validation, and testing of both the traditional and RAC approach. The task involves four-class classification of garbage categories: Black (3459 instances), Blue (6720 instances), Green (3492 instances), and TTR (3286 instances). Black refers to non-recyclable and non-compostable trash, Blue refers to recyclable trash, Green refers to compostable trash, and TTR refers to non-conventional trash like E-Waste. The dataset contains images of various trash, with the image file names being a short description of the image, acting as an additional modality.
+The multimodal garbage dataset by Cazarin Filho et. al. \cite{cazarin2025garbage} was used in this experiment. The dataset has 4 categories: Black (3459 instances, non-recyclable/non-compostable items), Blue (6720 instances, recyclable items), Green (3492 instances, compostable items), and TTR (3286 instances, other/e-garbage items). The dataset consists of images of various garbage, with the image file names being a short description of the image, acting as an additional modality.
 
-The training subset has significant class imbalance, which presents a challenge for both the traditional approach and multimodal approach, as seen in \autoref{fig:train-set-distribution}.  
+The training subset has significant class imbalance, which presents a challenge for both the traditional approach and multimodal approach, with nearly twice the instances of Blue, as seen in \autoref{fig:all-set-distribution}.  
 
-For experiments with RAC, the training subset of the dataset was converted into embeddings (vector representations) for both images and texts, and kept in a vector database, as examples. Chroma \cite{chromadb} was used for the vector database. During the experiments, the dataset was used in various ways, from training to simulating class imbalance, the details of which are in \autoref{sec:experiment setup}.
-
-
-\begin{figure}[htb]
-\centering
-\centerline{\includegraphics[width=0.8\linewidth]{images/train_set_distribution.png}}
-\caption{Class distribution in the training set}
-\label{fig:train-set-distribution}
-\end{figure}
+Chroma \cite{chromadb} was used for the vector database. During the experiments, the dataset was used in various ways, from training to simulating class imbalance, the details of which are in \autoref{sec:experiment setup}.
 
 
 \section{Methodology}
 \label{sec:methodology}
 
-\begin{table}[h]
+\subsection{Combining Modality}
+\label{subsec:combining modality}
+
+In both the traditional approach and RAC approach, the two modalities - image and text were independently accounted for classification, with their individual classification weights combined for the final prediction, $\hat{y}$. (For the notations used throughout the paper, refer to \autoref{tab:notation} in \autoref{appendix})
+
+For traditional:
+\begin{center}
+  $W_{fused} = \alpha W_{text}+(1-\alpha)W_{image}$\\
+  $\hat{y} = \softmax_{c}(W_{fused}$)
+\end{center}
+
+And, for RAC:
+\begin{center}
+  $S_{fused}(c) = \alpha S_{image}(c)+(1-\alpha)S_{text}(c)$\\
+  $\hat{y} = \argmax_{c}(S_{fused}(c))$
+\end{center}
+
+While traditional works with class weights ($W_{image}, W_{text}$) and RAC works with class retrieval scores ($S_{image}(c), S_{text}(c)$), the underlying contribution hyperparameter $\alpha \in [0,1]$ has the same meaning.
+
+\subsection{The Traditional Approach}
+
+The traditional approach refers to the use of supervised deep learning methods for multimodal classification. For the image model, we selected MobileNetV3 as it offers a good balance between accuracy and efficiency \cite{howard2019searching}. This model is based on the CNN (Convolutional Neural Network) architecture.
+
+On the other hand, DistilBERT was used for classification. DistilBERT is a very lightweight transformer architecture model that shows good performance for text related tasks \cite{sanh2019distilbert}. Since our text labels for images are small, there would be no problem related to the small token window of DistilBERT.
+
+% NOTE Add this later on in discussion
+% Note that we did not use state-of-the-art heavy models, as most garbage processing plants have limited resources for computing, and we wanted to match those constraints \cite{samson2026lightweight} \cite{farshadfar2025machine}. The usage of pre-trained model already offloads a lot of computational overhead for training.
+
+\subsection{The RAC Approach}
+
+The RAC approach works in the premise of vector similarity search, with cosine distance being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. Now, the scoring heuristics (for a given modality $m$ and a class $c$) used in this work are as follows: \\\\
+Majority Vote:
+\begin{center}
+    $S_m(c) = \sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q)} \mathbf{1}[y_i = c]$
+\end{center} 
+Inverse Distance Weighting (IDW):
+\begin{center}
+      $S_m(c) = \sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q),\, y_i=c} \frac{1}{d_i^{(m)} + \epsilon} $
+\end{center} 
+Global Density Normalized Distance Score (Global DNDS):
+\begin{center}
+  $\rho_m(c) = \frac{N_m(c)}{\sum_{c'} N_m(c')}$ \\
+  $S_m^{global}(c) = \frac{\sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q),\, y_i=c} \frac{1}{d_i^{(m)} + \epsilon}}{\rho_m(c)}$
+\end{center} 
+Local Density Normalized Distance Score (Local DNDS):
+\begin{center}
+  $\rho_m^{local}(c) = 
+  \frac{\left| \{ i \in \mathcal{N}_{K_{density}}^{(m)}(q) : y_i = c \} \right|}
+  {K_{density}}$,\\
+  $S_m^{local}(c) = \frac{\sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q),\, y_i=c} \frac{1}{d_i^{(m)} + \epsilon}}{\rho_m^{local}(c)}$
+\end{center}
+Kernel Density Estimated Density Normalized Distance Score (KDE DNDS):
+\begin{center}
+  $\tilde{\rho}_m(c) = \sum_{j : y_j = c} 
+  \exp\left( -\frac{\left(d_j^{(m)}\right)^2}{2h^2} \right)$, \\ \vspace{10pt}
+  $S_m^{kde}(c) = \frac{\sum_{i \in \mathcal{N}^{(m)}_{k_{vote}}(q),\, y_i=c} \frac{1}{d_i^{(m)} + \epsilon}}{\tilde{\rho}_m(c)}$
+\end{center} 
+
+With Global DNDS, the higher the overall density for a class, the more imbalanced that class is, and the heavier the penalization for that class's score is. It is also the most efficient, with $O(1)$ complexity, as maintaining a counter for the classes can help in calculating $N_m(c)$ and $N_m(c')$ in constant time.
+
+Local DNDS only calculates the density over a local neighborhood, $ \{ i \in \mathcal{N}_{K_{density}}^{(m)}(q) : y_i = c \} $, near query $q$. This addresses a key weakness of Global DNDS - a class, $c$, may be globally sparse, but locally dense near $q$, which causes Global DNDS to over-amplify the weight of $c$, despite it's strong local presence. Local DNDS corrects itself by fixating the density estimate in a locality. However, the neighborhood size $K_{density}$ is a very sensitive hyperparameter. If $K_{density}$ is too small compared to the database size and the spread of class instances, some classes will have near zero representations in the neighborhood, causing their density estimate to collapse (discussed more in \autoref{sec:experiment setup} and \autoref{sec:results}).
+
+KDE DNDS combines the strengths of Local DNDS and Global DNDS. It achieves this by implementing Kernel Density Estimation \cite{wkeglarczyk2018kernel}, with a Gaussian kernel. The Gaussian kernel allows nearby instances of class $c$ to have exponentially more contribution towards the density estimate, but also accounts for the further instances. This mirrors the Gaussian kernel in CNNs, where nearby pixels contribute more to defining a local patch - although KDE integrates over all database points rather than a fixed receptive field, which is exactly what eliminates the fixed $K_{density}$ of Local DNDS. The bandwidth $h \in (0, 1]$ controls the spatial scale at which class density is estimated - too small and the estimate becomes noisy; too large and KDE loses its local sensitivity. We address this through an ablation study in \autoref{sec:experiment setup}.
+
+
+\section{Experiment Setup}
+\label{sec:experiment setup}
+
+The experiment was done in 2 phases. Phase 1 involved the traditional methods, and phase 2 involved the RAC heuristics. F1 score and inference time were the key performance metrics, as they provide the best insight for classification performance and inference performance respectively. All the results are based on the test set.
+
+\subsection{Phase 1}
+
+Here, MobileNetV3 was paired with a 3 layer FCNN (Fully Connected Neural Network) classification head with layer sizes of $(960 \times 512)$, $(512 \times 256)$, and $(256 \times 4)$ respectively. During training, various image transformation strategies were implemented for robustness, such as - flipping, rotation, color jitter, and affine. Since we used a pre-trained variant (on ImageNet dataset \cite{deng2009imagenet}) of MobileNetV3, we only needed to train the classification head (transfer learning \cite{si2023apple}).
+
+DistilBERT is also a pre-trained model over Wikipedia \cite{wikidump} and BookCorpus \cite{Zhu_2015_ICCV} datasets, and only required the classification head to be fine-tuned. For this experiment, a linear FCNN classification head was paired with DistilBERT - which is a very common set-up, when using the sequence classifier variant of the model, available through HuggingFace Transformers library in python \cite{huggingface_distilbert}. No further text transformation techniques were used here, as such augmentations require special techniques \cite{bayer2022survey}, and it is beyond the scope of this study. 
+
+Note that standard L2 regularization was implemented to account for the class imbalance.
+
+After individual training of the text and image models, the modality weight, $\alpha$ was fine-tuned with the validation set and then a final prediction with the best $\alpha$ was made on the test set according to \autoref{subsec:combining modality}. 
+
+\subsection{Phase 2}
+
+Phase 2 was done in 5 steps. In the first step, the test data was ingested into the vector database, with image and text having different collections. With each entry, it's class label was included as ``label'' metadata. OpenClip VIT-B-32 (embedding size 512) was used for the image embedding function as this variant has low resource requirements and high inference speed \cite{cazarin2025multimodal, chen2025standalone} and is default for ChromaDB. For text embeddings, All-MiniLM-L6-v2 (embedding size 384) was used for the similar reasons of low resource (80 MB) and speed \cite{abimbola2026open}. 
+
+In both the second and third step, the RAC approach was evaluated with the test data in a similar manner. However, for step 3, $\alpha$ was not fine-tuned, and stayed at it's default of 0.5. This provided a good baseline for an out-of-box usage of the RAC approach.
+
+In the fourth step, the RAC approaches were tested with severe imbalance of class instances, from 2:1 to 10:1 for majority:minority. To simulate imbalance in a real-world scenario, a separate vector database collection was constructed with the train set for every ratio, by under-sampling the minority classes according to the ratio. This addresses RQ 2.
+
+Finally, in the fifth step, the RAC approaches were tested for continual learning, to elucidate RQ 3. In this experiment, a vector database collection was iteratively populated with the test data, from 10\% of the total data to 100\% of the total data - which mimics a growing database of instances.   
+
+\section{Results}
+\label{sec:results}
+
+\begin{table}[!htbp]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+Method & Accuracy (\%) & $\Delta$ Accuracy (\%) & Macro-F1 (\%) & $\Delta$ Macro-F1 (\%) & Latency (ms) \\
+\hline
+Traditional & 81.14 & +0.00 & 80.80 & +0.00 & 1.46 \\
+\hline
+Global-DNDS & \textbf{85.25} & \textbf{+4.11} & \textbf{84.81} & \textbf{+4.01} & 412.54 \\
+\hline
+KDE-DNDS & 85.23 & +4.08 & 84.80 & +3.99 & 925.54 \\
+\hline
+IDW & 83.72 & +2.58 & 83.19 & +2.39 & 123.72 \\
+\hline
+MajorityVote & 82.94 & +1.80 & 82.36 & +1.56 & 125.34 \\
+\hline
+Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
+\hline
+\end{tabular}%
+}
+\caption{Comparison of RAC variants against the traditional baseline}
+\label{tab:rac_vs_traditional_compact}
+\end{table}
+
+In this section, the results are briefly discussed with limited figures and tables. For more figures, refer to Appendix.
+
+The \autoref{tab:rac_vs_traditional_compact} clearly shows that RAC triumphs the traditional methods, especially Global DNDS and KDE DNDS, having the highest delta gain in terms of both accuracy and F1 score. Which is further re-enforced by the per class F1 Score delta heatmap in \autoref{fig:per-class-f1-delta}. However, in inference time, the traditional method still triumphs, whereas KDE DNDS takes the most toll (also refer \autoref{fig:effectiveness-vs-efficiency} in \autoref{appendix}). Note that the results reported in \autoref{tab:rac_vs_traditional_compact} used $\alpha = 0.5$, the $\alpha$ was not fine tuned. Even with $\alpha$ tuning, there was no gain (refer \autoref{tab:verified_tuned_vs_noalpha} in \autoref{appendix}). Ablation study for KDE DNDS bandwidth $h$, showed that beyond 0.2, $h$ reaches an almost plateau, with 0.5 being the highest, even though not by much difference (refer \autoref{fig:kde-ablation} in \autoref{appendix}). Which coincidentally is the same as the default $h$ which was selected. The values of $\alpha = 0.5$ and $h = 0.5$ were selected as default values as they fall right in the middle of their range - $ \alpha, h \in [0, 1]$.
+
+For the imbalance experiment, Global DNDS and KDE DNDS showed robustness with a more graceful decline in performance. The decline was even more gracious for the minority classes, Green and TTR (refer \autoref{fig:f1-vs-imbalance} and \autoref{fig:f1-vs-minority-imbalance-ttr} in \autoref{appendix}). 
+
+Finally, for continual learning, all of the RAC variants show an increasing trend in F1 score, even with static $\alpha = 0.5$, $K_{density} = 50$, and $h=0.5$ (refer to \autoref{fig:continual-learning} in \autoref{appendix}).
+
+\section{Discussion}
+\label{sec:discussion}
+
+Across standard evaluation settings, Local DNDS and Global DNDS, demonstrates a clear and consistent improvement over traditional supervised fusion models, and standard RAC techniques like Majority Vote and IDW, clarifying RQ1. Even with regularization in place, the traditional approach still had bias towards the majority class, which all of the RAC variants overcame (refer \autoref{fig:per-class-f1-delta} in \autoref{appendix}). For RQ2, class imbalance experiments showed decline in RAC variants, but Global and KDE DNDS showed a more graceful decline, compared to Local DNDS and other RAC variants. This reinforces the sensitivity of $K_{density}$, implying that the value of $K_{density} = 50$ was not enough to create a good local boundary. During the experiments with a not tuned $\alpha$, $K_{density} = 50$ was tuned over $K_{density} \in {10, 25, 50, 75, 100}$ with the validation set, which did contribute to a very minor increase in accuracy and F1 score in test set (the negative sign is there as a subtraction artifact in \autoref{tab:verified_tuned_vs_noalpha} in \autoref{appendix}), implying that a more diverse set of values for $K_{density}$ is required to fine tune it to spec. For RQ3, the increasing trend of performance with database size confirms that DNDS can maintain performance with continual increase of data. Unlike traditional approach, newer instances can immediately be accounted for just by inserting the instance in the database. And finally, the overall performance figures indicates that Global DNDS performs the best for mild imbalance conditions, like in this particular dataset. However, for imbalanced conditions, KDE DNDS shows slightly better retention of F1 score than Global DNDS (refer to \autoref{fig:f1-vs-imbalance} in \autoref{appendix}).
+
+However, there are some points to be discussed. First of all, in \autoref{fig:per-class-f1-delta}, the F1 score for Green class is actually hurt by the DNDS variants. From the pairwise cosine-distance statistics in \autoref{tab:embedding_distance_stats}, Green has the tightest clustering (mean = 0.467). Traditional ML methods excel with these kinds of clustering, by being able to draw a cleaner decision boundary \cite{yan2009studies}. DNDS methods implicitly assume that geometric density in embedding space correlates with class frequency in the database, which is violated by Green being a compact, but minority class. This over-penalizes Green, leading to this downgrade in performance. Future work can address this by incorporating explicit class count priors with geometric density estimates, such that class frequency and geometric density can contribute independently.
+
+Secondly, RAC variants have a significantly longer inference time than the traditional approach. This is an inherent issue with vector databases, as vector operations can get quite long with increasing database and embedding size. Future research can address this issue of vector databases. While the robustness and lesser memory consumption for training gives the advantage to DNDS, for real-time systems working in high velocity, the traditional method still remains the viable choice. 
+
+Finally, a key performance bottleneck for RAC still lies with the actual embedding models. The richer the vector representations, the richer the geometric space, and the more effective RAC variants would be. However, despite OpenClip VIT-B-32 and All-MiniLM-L6-v2 are not the best performing models \cite{abimbola2026open, islam2026learning, li2025iris}, their performance was still competitive due to DNDS. 
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+In this work, we investigated the effectiveness of supervised multimodal fusion and retrieval augmented classification for garbage classification. Our retrieval based approaches, particularly density aware methods, achieved improved accuracy and robustness in comparison to traditional approaches. To conclude, RAC can be as reliable and generalizable approach as traditional inference based models without retraining weights from large pre-trained models. We also discussed the potential caveats of both traditional and RAC, and how to mitigate them.
+
+% To start a new column (but not a new page) and help balance the last-page
+% column length use \vfill\pagebreak.
+% -------------------------------------------------------------------------
+%\vfill
+%\pagebreak
+\clearpage
+\bibliographystyle{IEEEbib}
+\bibliography{strings,refs}
+\clearpage
+\onecolumn
+
+\begin{appendices}
+  
+
+
+\section{APPENDIX}
+\label{appendix}
+
+
+\subsection*{Various Figures}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=\linewidth]{images/trash_dataset.png}}
+\caption{Dataset Class Distribution}
+\label{fig:all-set-distribution}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=\linewidth]{images/training_metrics_image_model.png}}
+\caption{Training metrics for ImageNetV2}
+\label{fig:training-for-imagenet}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=\linewidth]{images/training_metrics_image_model.png}}
+\caption{Training metrics for DistilBERT}
+\label{fig:training-for-distiilbert}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=0.7\linewidth]{images/per_class_f1_delta.png}}
+\caption{Heatmap of per-class F1 score differences between traditional approach and RAC variants}
+\label{fig:per-class-f1-delta}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=0.7\linewidth]{images/effectiveness_vs_efficiency.png}}
+\caption{Effectiveness vs efficiency for traditional and RAC variants}
+\label{fig:effectiveness-vs-efficiency}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=0.7\linewidth]{images/kde_ablation.png}}
+\caption{KDE DNDS bandwidth ablation against F1 score}
+\label{fig:kde-ablation}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=0.7\linewidth]{images/f1_vs_imbalance.png}}
+\caption{F1 score vs imbalance ratio for all RAC variants}
+\label{fig:f1-vs-imbalance}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=\linewidth]{images/f1_vs_minority-imbalance.png}}
+\caption{F1 score for minority classes (Green and TTR) vs imbalance ratio for all RAC variants}
+\label{fig:f1-vs-minority-imbalance-ttr}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=0.7\linewidth]{images/continual_learning.png}}
+\caption{F1 score with increasing database size from 10\% to 100\%}
+\label{fig:continual-learning}
+\end{figure}
+
+\clearpage
+
+\subsection*{Various Tables}
+
+
+\begin{table}[!htb]
 \centering
 \begin{tabular}{|c|l|}
 \hline
@@ -139,7 +366,7 @@ $q$ & query sample \\
 \hline
 $m \in \{I, T\}$ & modality (image or text) \\
 \hline
-$\mathcal{N}^{(m)}_k(q)$ & top-$k$ neighbors of $q$ in modality $m$ \\
+$\mathcal{N}^{(m)}_{k_{vote}}(q)$ & top-$k_{vote}$ neighbors of $q$ in modality $m$ \\
 \hline
 $d_i^{(m)}$ & retrieval distance of neighbor $i$ \\
 \hline
@@ -170,156 +397,56 @@ $N_m(c')$ & Count all instances \\
 \label{tab:notation}
 \end{table}
 
-\subsection{Combining Modality}
+\begin{table}[!htb]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{|l|r|r|r|r|r|r|}
+\hline
+Method & Accuracy(T) & Accuracy(NT) & $\Delta$Accuracy & Macro F1(T) & Macro F1(NT) & $\Delta$Macro F1 \\
+\hline
+majority\_vote & 82.94 & 82.94 & +0.00 & 82.36 & 82.36 & +0.00 \\
+\hline
+idw            & 83.72 & 83.72 & +0.00 & 83.19 & 83.19 & +0.00 \\
+\hline
+global\_dnds   & 85.25 & 85.25 & +0.00 & 84.81 & 84.81 & +0.00 \\
+\hline
+local\_dnds    & 81.72 & 82.18 & -0.46 & 81.31 & 81.76 & -0.45 \\
+\hline
+kde\_dnds      & 85.23 & 85.23 & +0.00 & 84.80 & 84.80 & +0.00 \\
+\hline
+traditional    & 81.14 & 81.14 & +0.00 & 80.80 & 80.80 & +0.00 \\
+\hline
+\end{tabular}%
+}
+\caption{Comparison between tuned $\alpha$ (T) and not tuned $\alpha$ (NT) for RAC variants}
+\label{tab:verified_tuned_vs_noalpha}
+\end{table}
 
-In both the traditional approach and RAC approach, the two modalities - image and text were independently accounted for classification, with their individual classification weights combined for the final prediction, $\hat{y}$.
+\begin{table}[!htb]
+\centering
+\begin{tabular}{|l|r|r|c|c|c|c|}
+\hline
+Class & Samples ($n$) & Pairs & Mean & Std & Min & Max \\
+\hline
+Black & 2382 & 2835771  & 0.548 & 0.119 & 0.000 & 0.990 \\
+\hline
+Blue  & 4856 & 11787940 & 0.534 & 0.109 & 0.000 & 1.003 \\
+\hline
+Green & 2331 & 2715615  & 0.467 & 0.102 & 0.000 & 0.965 \\
+\hline
+TTR   & 2116 & 2237670  & 0.615 & 0.126 & 0.000 & 1.054 \\
+\hline
+\end{tabular}
+\caption{Within-class pairwise cosine-distance statistics of image embeddings. Lower mean indicates tighter class compactness in embedding space.}
+\label{tab:embedding_distance_stats}
+\end{table}
 
-For traditional:
-\begin{center}
-  $W_{fused} = \alpha W_{text}+(1-\alpha)W_{image}$\\
-  $\hat{y} = \softmax_{c}(W_{fused}$)
-\end{center}
-
-And, for RAC:
-\begin{center}
-  $S_{fused}(c) = \alpha S_{image}(c)+(1-\alpha)S_{text}(c)$\\
-  $\hat{y} = \argmax_{c}(S_{fused}(c))$
-\end{center}
-
-While traditional works with class weights ($W_{image}, W_{text}$) and RAC works with class retrieval scores ($S_{image}(c), S_{text}(c)$), the underlying contribution hyperparameter $\alpha \in [0,1]$ has the same meaning. In traditional, softmax is used to convert weights to probabilities. In RAC, just the maximum score (argmax) is taken. The hyperparameter $\alpha$ started as 0.5, and was tuned when needed to extract the best classification performance.
-
-\subsection{The Traditional Approach}
-
-The traditional approach refers to the use of supervised deep learning methods for multimodal classification. For the image model, we selected MobileNetV3 as it offers a good balance between accuracy and efficiency \cite{howard2019searching}. For the classification head, a 3 layer neural network was used with $(960 \times 512)$, $(512 \times 256)$, and $(256 \times 4)$ layer sizes respectively. Since we used a pre-trained variant (on ImageNet dataset \cite{deng2009imagenet}) of MobileNetV3, we only needed to train the classification head (transfer learning). 
-
-On the other hand, DistilBERT was used for classification. DistilBERT is a very lightweight transformer architecture model that shows good performance for text related tasks \cite{sanh2019distilbert}. Since our text labels for images are small, there would be no problem related to the small token window of DistilBERT. DistilBERT was paired with a linear classification layer with size of $(768 \times 4)$. Like MobileNetV3, DistilBERT is also a pre-trained model over Wikipedia \cite{wikidump} and BookCorpus \cite{Zhu_2015_ICCV} datasets, and only required the classification head to be fine-tuned. 
-
-% NOTE Add this later on in discussion
-% Note that we did not use state-of-the-art heavy models, as most waste processing plants have limited resources for computing, and we wanted to match those constraints \cite{samson2026lightweight} \cite{farshadfar2025machine}. The usage of pre-trained model already offloads a lot of computational overhead for training.
-
-\subsection{The RAC Approach}
-
-The RAC approach works in the premise of vector similarity search, with cosine similarity being the key distance metric \cite{meng2025multimodal}. For a given query $q$, 10 nearest neighbors are retrieved separately for image and text modalities, and class scores are computed using different vector-based heuristics. Now, the scoring heuristics (for a given modality $m$ and a class $c$) used in this work are as follows: \\\\
-Majority Vote:
-\begin{center}
-    $S_{m}(c) = S_m(c) = \sum_{i \in N_k^{(m)}(q)} \mathbf{1}[y_i = c]$
-\end{center} 
-Inverse Distance Weighting (IDW):
-\begin{center}
-      $S_{m}(c) = S_m(c) = \sum_{i \in N_k^{(m)}(q),y_{i}=c} \frac{1}{d_k^{m} + \epsilon} $
-\end{center} 
-Global Density Normalized Distance Score (Global DNDS):
-\begin{center}
-  $\rho_m(c) = \frac{N_m(c)}{\sum_{c'} N_m(c')}$ \\
-  $S_m(c) = \sum_{\substack{i \in \mathcal{N}_k^{(m)}(q) \\ y_i = c}} 
-  \frac{1}{\left(d_i^{(m)} + \epsilon\right)\,\rho_m(c)}$
-\end{center} 
-Local Density Normalized Distance Score (Local DNDS):
-\begin{center}
-  $\rho_m^{local}(c) = 
-  \frac{\left| \{ i \in \mathcal{N}_{K_{density}}^{(m)}(q) : y_i = c \} \right|}
-  {K_{density}}$,\\
-  $S_m(c) = 
-  \frac{
-  \sum_{\substack{i \in \mathcal{N}_k^{(m)}(q) \\ y_i = c}} 
-  \frac{1}{d_i^{(m)} + \epsilon}
-  }
-  {\rho_m^{local}(c)}$
-\end{center}
-Kernel Density Estimated Density Normalized Distance Score (KDE DNDS):
-\begin{center}
-  $\tilde{\rho}_m(c) = \sum_{j : y_j = c} 
-  \exp\left( -\frac{\left(d_j^{(m)}\right)^2}{2h^2} \right)$, \\ \vspace{10pt}
-  $S_m(c) =\frac{\sum_{\substack{i \in \mathcal{N}_k^{(m)}(q),,  y_i = c \frac{1}{d_i^{(m)} + \epsilon}}}} 
-  {{\tilde{\rho}_m(c)}}$
-\end{center} 
-
-One can refer to \autoref{tab:notation} for the notations used throughout the paper. It is important to note here that all of the DNDS variants builds on the IDW strategy, where the cosine distance is inverted for a kind of ``similarity score''. DNDS variants normalize the score based on class density in different strategies.
-
-Global DNDS is the most easiest strategy, where the normalization simply considers a class's overall density in the database. The higher the density for a class, the more imbalanced that class is, and the heavier the penalization for that class's score is. It is also the most efficient, with $O(1)$ complexity, as maintaining a counter for the classes can help in calculating $N_m(c)$ and $N_m(c')$ in constant time.
-
-Local DNDS calculates the density over a local neighborhood, $ \{ i \in \mathcal{N}_{K_{density}}^{(m)}(q) : y_i = c \} $, near query $q$, instead of the entire database. This addresses a key weakness of Global DNDS - a class, $c$, may be globally sparse, but locally dense near $q$, which causes Global DNDS to over-amplify the weight of $c$, despite it's strong local presence. By fixating the density estimate to a local neighborhood, Local DNDS corrects itself for this locality problem. However, the neighborhood size $K_{density}$ is a very sensitive hyperparameter. If $K_{\text{density}}$ is too small compared to the database size and the spread of class instances, some classes will have near zero representations in the neighborhood, causing their density estimate to collapse. A more detailed discussion on fine-tuning the value of $K_{\text{density}}$ is discussed in \autoref{sec:experiment setup}.
-
-KDE DNDS combines the strengths of Local DNDS and Global DNDS, by emphasizing more on local instances, while also keeping distant instances in consideration. It does not abruptly cut off neighborhood like a strict value of $K_{density}$ in Local DNDS, neither is it inconsiderate of local density like Global DNDS. KDE DNDS achieves this by implementing Kernel Density Estimation \cite{wkeglarczyk2018kernel}, with a Gaussian kernel. The Gaussian kernel allows nearby instances of class $c$ to have exponentially more contribution towards the density estimate, but also accounts for the further instances, even if exponentially less. This mirrors the Gaussian kernel in CNNs, where nearby pixels contribute more to defining a local patch — with the key distinction that KDE integrates over all database points rather than a fixed receptive field, which is exactly what eliminates the hard-cutoff artifact of Local DNDS. Using this as a normalization factor penalizes true majority classes more faithfully. The bandwidth $h$ controls the spatial scale at which class density is estimated — too small and the estimate becomes noisy; too large and KDE approximates the global prior, losing its local sensitivity. We address this through an ablation study in \autoref{sec:experiment setup}.
-
-
-\section{Experiment Setup}
-\label{sec:experiment setup}
-
-The experiment was done in 2 phases. Phase 1 consisted of training the traditional methods, and phase 2 consisted of various experiments with RAC heuristics. All models and methods were evaluated under consistent settings. Hyperparameters such as fusion weight $(\alpha)$, neighborhood size $(k)$, and KDE bandwidth $h$ were tuned using validation set. Various metrics were used to evaluate performance, with emphasis being on accuracy, F1 score, and inference time (in milliseconds). Since F1 score cumulates precision and recall, it is an ideal metric for measuring classification robustness, especially when there is an imbalance present. Hence, some results are reported purely based on F1 score.
-
-
-
-% \begin{figure}[htb]
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/phase 1 vs 2.png}}
-% \caption{Comparison of Phase 1(supervised fusion) and Phase 2(retieval-augmented classification), showing improvement in macro F1 score.}
-% \label{fig:phase}
-% \end{figure}
-
-% \begin{figure}
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/Macro F1 scoreing variant.png}}
-% \caption{Macro F1 score cmparison across different scroing variants, highlighting the effectiveness of density-aware methods.}
-% \label{fig:macro_variant}
-% \end{figure}
-
-% \begin{figure}
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/confusion matrix.png}}
-% \caption{Confusion matrices for different scoring methods, illustrating classification performance across all classes.}
-% \label{fig:confusion}
-% \end{figure}
-
-% \begin{figure}
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/imbalance.png}}
-% \caption{Class-wise F1 score under increasing imbalance ratios, demonstrating improved robustness of density-aware methods.}
-% \label{fig:imbalance}
-% \end{figure}
-
-% \begin{figure}
-% \centering
-% \centerline{\includegraphics[width=\linewidth]{images/learning curve.png}}
-% \caption{Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory.}
-% \label{fig:learning}
-% \end{figure}
-
-\section{Results}
-Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
-
-\section{Discussion}
-Across standard evaluation settings, retrieval-augmented classification demonstrates a clear and consistent improvement over traditional supervised fusion models. While multimodal fusion effectively combines image and text information to produce string baseline results, it relies entirely on learned representations and may not fully capture complex relationships in the data. In contrast, retrieval-based approaches leverage embedding neighborhood, allowing predictions to be influenced by similar examples. Among the evaluated methods, density-aware heuristics such as global DNDS and KDE-DNDS achieve the highest performance, indicating that incorporate class density into scoring leads to more reliable and discriminative predictions. Simpler approaches such as majority voting and inverse distance weighting show comparatively lower performance, highlighting their limitations in handling overlapping class distributions.
-
-Under class imbalance conditions, all methods experience a decline in performance; however, the extent of degradation varies significantly. Density-normalized approaches maintain substantially higher F1 scores for minority classes, particularly TTR, demonstrating improved robustness. This behavior suggests that density-aware methods effectively compensate for uneven class distributions by reducing the dominance of majority-class neighbors during retrieval. In contrast, non-normalized methods tend to bias predictions towards majority classes, leading to increased misclassifications. The confusion matrix analysis further supports these findings, showing that density-based methods achieve better class separation and reduced confusion between visually or semantically similar categories.
-
-In the continual-memory experiments, performance improves as the size of the retrieval database increases, confirming the importance of richer neighborhood information. As more samples are added, the embedding space becomes more representative of the overall data distribution, enabling more accurate retrieval and classification. Density-based methods exhibit more stable and consistent improvements compared to other approaches,indicating their ability to effectively utilize additional data without being adversely affected by redundancy or imbalance. This highlights a key advantage or retrieval-based system: their performance can scale with data availability without requiring retaining.
-
-The observed performance differences can be attributed to how each method handles local and global data structure. Density-aware heuristics explicitly normalize scores based on class distribution, reducing bias and improving generalization. In contrast, simpler heuristics rely solely on distance or count-based measures, which may not adequately reflected the true distribution of classes in the embedding space. Additionally, retrieval-based methods introduce flexibility by allowing the system to adapt dynamically to new data through memory expansion, unlike traditional models that require retraining for updates.
-
-Overall, while supervised multimodal fusion provides a strong and efficient baseline, retrieval-augmented classification particularly with density normalization offers improved robustness, scalability, and generalization. These findings suggest that combining inference-based learning with retrieval-driven reasoning is a promising direction for multimodal classification tasks. Future work may explore more advanced embedding techniques, adapting retrieval strategies, and hybrid models that further integrate supervised learning with retrieval mechanisms to enhance performance accross diverse real-word scenarios.
-
-\section{Conclusion}
-\label{sec:conclusion}
-In this work, we investigated the effectiveness of supervised multimodal fusion and retrieval-augmented classification for garbage classification. We found that while supervised fusion models provide strong baseline performance, retrieval-based approaches, particularly density-aware methods, achieve improved accuracy and robustness. These methods demonstrate better performance under class imbalance and benefit from increased retrieval memory, indicating their scalability and adaptability.
-
-Overall, the results suggest the retrieval-augmented classification offers a more reliable and generalizable approach compared to traditional inference-based models. This highlights the importance of integrating retrieval mechanisms with multimodal learning for real-world classification tasks.
-
-% To start a new column (but not a new page) and help balance the last-page
-% column length use \vfill\pagebreak.
-% -------------------------------------------------------------------------
-%\vfill
-%\pagebreak
-
-\clearpage
-
-
+\end{appendices}
 % References should be produced using the bibtex program from suitable
 % BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
 % style file from IEEE produces unsorted bibliography list.
 % ------------------------------------------------------------------------- 
 
-\bibliographystyle{IEEEbib}
-\bibliography{strings,refs}
+
 
 \end{document}
