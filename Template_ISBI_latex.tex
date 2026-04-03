@@ -125,7 +125,7 @@ Additionally, no prior work has systematically evaluated multimodal RAC robustne
 
 The multimodal garbage dataset by Cazarin Filho et. al. \cite{cazarin2025garbage} was used in this experiment. The dataset has 4 categories: Black (3459 instances, non-recyclable/non-compostable items), Blue (6720 instances, recyclable items), Green (3492 instances, compostable items), and TTR (3286 instances, other/e-garbage items). The dataset consists of images of various garbage, with the image file names being a short description of the image, acting as an additional modality.
 
-The training subset has significant class imbalance, which presents a challenge for both the traditional approach and multimodal approach, with nearly twice the instances of Blue, as seen in \autoref{fig:train-set-distribution}.  
+The training subset has significant class imbalance, which presents a challenge for both the traditional approach and multimodal approach, with nearly twice the instances of Blue, as seen in \autoref{fig:all-set-distribution}.  
 
 Chroma \cite{chromadb} was used for the vector database. During the experiments, the dataset was used in various ways, from training to simulating class imbalance, the details of which are in \autoref{sec:experiment setup}.
 
@@ -295,12 +295,26 @@ In this work, we investigated the effectiveness of supervised multimodal fusion 
 
 
 \subsection*{Various Figures}
-  
+
 \begin{figure}[!htb]
 \centering
-\centerline{\includegraphics[width=0.6\linewidth]{images/train_set_distribution.png}}
-\caption{Class distribution in the training set}
-\label{fig:train-set-distribution}
+\centerline{\includegraphics[width=\linewidth]{images/trash_dataset.png}}
+\caption{Dataset Class Distribution}
+\label{fig:all-set-distribution}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=\linewidth]{images/training_metrics_image_model.png}}
+\caption{Training metrics for ImageNetV2}
+\label{fig:training-for-imagenet}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\centerline{\includegraphics[width=\linewidth]{images/training_metrics_image_model.png}}
+\caption{Training metrics for DistilBERT}
+\label{fig:training-for-distiilbert}
 \end{figure}
 
 \begin{figure}[!htb]
