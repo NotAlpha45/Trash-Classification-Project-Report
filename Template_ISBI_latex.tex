@@ -257,9 +257,7 @@ The \autoref{tab:rac_vs_traditional_compact} clearly shows that RAC triumphs the
 
 For the imbalance experiment, Global DNDS and KDE DNDS showed robustness with a more graceful decline in performance. The decline was even more gracious for the minority classes, Green and TTR (refer \autoref{fig:f1-vs-imbalance}, \autoref{fig:f1-vs-imbalance-green}, and \autoref{fig:f1-vs-imbalance-ttr} in \autoref{appendix}). 
 
-Finally, for continual learning, all of the RAC variants show an increasing trend in F1 score, even with static $\alpha = 0.5$, $K_{density} = 50$, and $h=0.5$ (refer to \autoref{fig:continual-learning} in \autoref{appendix}). 
-
-% Figure \ref{fig:phase} showing improvement in macro F1 score. Phase 2 demonstrates clear improvement over Phase 1, including the effectiveness of retrieval-based methods.Figure \ref{fig:macro_variant} Macro F1 score comparison across different variants, highlighting the effectiveness of density-aware methods. Density-based methods(global DNDS, KDE-DNDS) achieve the hightest performance, outperforming majority voting and IDW.Figure \ref{fig:confusion} demonstrates different scoring methods, illustrating classification performance across all classes. Density-aware methods show better class-wise accuracy, particularly for challenging classes like TTR. Figure \ref{fig:imbalance} demonstrating improved robustness of density-aware methods. Performance degrades with imbalance, but density-based methods remain more stable. Figure \ref{fig:learning} Macro F1 score as a function of retrieval database size, showing performance improvement with increasing memory. All methods improve with large memory, with density-aware approaches showing more consistent gains.
+Finally, for continual learning, all of the RAC variants show an increasing trend in F1 score, even with static $\alpha = 0.5$, $K_{density} = 50$, and $h=0.5$ (refer to \autoref{fig:continual-learning} in \autoref{appendix}).
 
 \section{Discussion}
 \label{sec:discussion}
@@ -274,7 +272,8 @@ Finally, a key performance bottleneck for RAC still lies with the actual embeddi
 
 \section{Conclusion}
 \label{sec:conclusion}
-In this work, we investigated the effectiveness of supervised multimodal fusion and retrieval augmented classification for garbage classification. Our retrieval based approaches, particularly density aware methods, achieved improved accuracy and robustness in comparison to traditional approaches. To conclude, RAC can be as reliable and generalizable approach as traditional inference based models without retraining weights from large pre-trained models.
+
+In this work, we investigated the effectiveness of supervised multimodal fusion and retrieval augmented classification for garbage classification. Our retrieval based approaches, particularly density aware methods, achieved improved accuracy and robustness in comparison to traditional approaches. To conclude, RAC can be as reliable and generalizable approach as traditional inference based models without retraining weights from large pre-trained models. We also discussed the potential caveats of both traditional and RAC, and how to mitigate them.
 
 % To start a new column (but not a new page) and help balance the last-page
 % column length use \vfill\pagebreak.
