@@ -84,9 +84,9 @@ Multimodal Lerning, Garbage Classification, RAC (Retrieval-Augmented Classificat
 \section{Introduction}
 \label{sec:intro}
 
-Garbage classification is an intriguing field that offers a good opportunity for applied deep learning (DL) multimodal classification tasks, as garbage management facilities regularly use machine learning \cite{alexakis2025enhanced} to sort garbage. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems \cite{alexakis2025enhanced}. However, challenging conditions such as class imbalance, limited training data or domain shift often require rigorous training, normalization, complex feature engineering, augmentation, or re-training an existing model. This adds a significant computational cost \cite{islam2026learning}.
+Garbage classification is an intriguing field for applied deep learning (DL) multimodal classification tasks, as garbage management facilities regularly use machine learning \cite{alexakis2025enhanced} to sort garbage. By leveraging complementary information across modalities, multimodal approaches often outperform unimodal systems \cite{alexakis2025enhanced}. However, challenging conditions such as class imbalance, limited training data or domain shift often require rigorous training, normalization, complex feature engineering, augmentation, or re-training an existing model. This adds a significant computational cost \cite{islam2026learning}.
 
-An alternative approach is retrieval-augmented classification (RAC), which utilizes embeddings to retrieve similar instance and make predictions based on neighborhood evidence. This allows to incorporate additional contextual information beyond training, but introduces challenges in retrieval strategies. A systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In our work, a two-phase experiment evaluates both strategies for multimodal garbage classification, with experiments conducted under standard settings, class imbalance, and varying instance size to analyze performance, robustness, and generalization. Implemented with modern vector databases, RAC only has a storage overhead, which is much cheaper than memory in terms of hardware price. 
+An alternative approach is retrieval-augmented classification (RAC), which utilizes embeddings to retrieve similar instance and make predictions based on neighborhood evidence. This allows to incorporate a richer contextual information, but introduces challenges in retrieval strategies. A systematic comparison between traditional supervised inference and retrieval-based approaches remains limited. In our work, a two-phase experiment evaluates both strategies for multimodal garbage classification, under various challenging conditions. 
 
 To address the challenges in retrieval strategies, we propose a novel heuristic - Density Normalized Distance Score (DNDS) that specifically addresses the challenge of data skewness or imbalance, and domain shift by taking into account class distributions in various ways. This DNDS has 3 variants that we studied in this work - Global DNDS, Local DNDS, and KDE DNDS (discussed in \autoref{sec:methodology}). This DNDS heuristic is dynamic, designed to work with existing cosine heuristics \cite{xie2023brief}, and corrects itself for class skewness. Throughout this study, we evaluated these 3 variants of the DNDS heuristic, with a traditional deep learning involving a 2 step approach implemented with MobileNetV3 and DistilBERT. Now, our research questions (RQs) for this study are as follows:  
 
@@ -99,26 +99,18 @@ To address the challenges in retrieval strategies, we propose a novel heuristic 
 
 \section{Related Work}
 \label{sec:related work}
-Deep multimodal learning techniques are highly efficient for garbage classification, outperforming single-modality approaches. 
-Feature-level fusion in fully connected layers outperforms decision-level strategies when leveraging deeply learned representations for garbage sorting \cite{lu2022deep}, with late fusion demonstrating superior performance over early and intermediate fusion architectures \cite{bihler2023multi, willis2025exploring}. 
-These findings establish logit-level fusion as the state-of-the-art baseline for multimodal garbage classification.
 
-For garbage classification, \cite{cazarin2025garbage} achieved 86.14\% test accuracy 
-by combining DistilBERT and EfficientNetV2-Medium with a novel Reverse Cross 
-Attention (RCA) fusion mechanism, employing class-balanced weighting and staged 
-fine-tuning.
-This approach of going beyond transfer learning and retraining weight with smaller learning rate trades increased computational cost for improved accuracy.
+For deep learning applications in garbage sorting, the work of Lu et. al., Bihler et. al., and Willis et. al. explore various multimodal fusion strategies. In their studies, feature-level fusion in fully connected layers outperformed decision-level strategies when leveraging deeply learned representations \cite{lu2022deep}, whereas late fusion demonstrated superior performance over early and intermediate fusion architectures \cite{bihler2023multi, willis2025exploring}. These findings establish logit-level fusion as the state-of-the-art baseline for multimodal garbage classification.
 
-Retrieval-augmented classification (RAC) leveraging k-NN retrieval during inference demonstrates consistent improvements over supervised baselines \cite{li2024kra}.
-However, supervised approaches face critical limitations when deployed on imbalanced real-world garbage data. 
-RAC is particularly effective for minority classes in imbalanced datasets and domain adaptation scenarios \cite{long2022retrieval, lakatos2025investigating}, though shared representations for classification and retrieval hurt performance and lead to training instability \cite{liang2023retrieval}.
+Another work by Cazarin Filho et. al., achieved 86.14\% test accuracy by combining DistilBERT and EfficientNetV2-Medium with a novel Reverse Cross Attention (RCA) fusion mechanism, employing class-balanced weighting and staged fine-tuning \cite{cazarin2025garbage}. However, this approach of going beyond transfer learning and retraining pre-trained models with smaller learning rate trades increased computational cost for improved performance.
+
+However, Long et. al. and Lakatos et. al. showed that upervised approaches face critical limitations when deployed on imbalanced real-world garbage data, and RAC being very effective for minority classes in imbalanced datasets and domain adaptation scenarios \cite{long2022retrieval, lakatos2025investigating}.
+
+The work by Li et. al. explores RAC by leveraging k-NN (k-Nearest Neighbors) retrieval during inference, demonstrating consistent improvements over supervised baselines \cite{li2024kra}. However, Lian et. al. showed that shared representations for classification and retrieval hurt performance \cite{liang2023retrieval}.
+
 This motivates the exploration of multiple density-aware scoring heuristics to improve retrieval-based classification robustness.
 
-To address class overlap in imbalanced neighborhoods, density normalization strategies like adaptive k-nearest neighbor methods have proven effective \cite{yuan2021novel,kim2021normalized}.
-More recently, proximity ratio techniques combined with density-aware weighting schemes have shown improvements on imbalanced classification tasks \cite{amer2025effective}.
-
-While ChromaDB has become standard for RAC pipelines, its application to classification tasks with density-aware scoring remains unexplored.
-Additionally, no prior work has systematically evaluated multimodal RAC robustness under controlled imbalance stress tests or characterized performance scaling with memory growth.
+The works by Yuan et. al., and Kim et. al., explores density normalization strategies like adaptive k-NN, which have been proven effective \cite{yuan2021novel,kim2021normalized}. More recently, studies by Amer et. al. showed improvements on imbalanced classification tasks by combining proximity ratio and density-aware weighting schemes \cite{amer2025effective}.
 
 
 \section{Dataset}
