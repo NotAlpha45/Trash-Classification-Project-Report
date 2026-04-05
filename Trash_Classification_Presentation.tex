@@ -53,24 +53,23 @@
 
 \section{Data and Methods}
 \begin{frame}{Dataset and Class Imbalance}
-\begin{columns}[T]
-  \begin{column}{0.52\textwidth}
-    \begin{itemize}
-      \item Black: 3459
-      \item Blue: 6720
-      \item Green: 3492
-      \item TTR: 3286
-      \item Blue is about 1.9x larger than minority classes.
-      \item Skew risks majority-biased decision boundaries and retrieval votes.
-    \end{itemize}
-  \end{column}
-  \begin{column}{0.48\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{images/trash_dataset.png}
-    \\[-2pt]
-    {\scriptsize Class distribution used in this study.}
-  \end{column}
-\end{columns}
+\begin{itemize}
+  \item Black: 3459
+  \item Blue: 6720
+  \item Green: 3492
+  \item TTR: 3286
+  \item Blue is about 1.9x larger than minority classes.
+  \item Class skew can bias both decision boundaries and retrieval votes.
+\end{itemize}
+\vspace{2pt}
+{\scriptsize Dataset source: \cite{cazarin2025garbage}.}
+\end{frame}
+
+\begin{frame}{Dataset and Class Imbalance: Distribution}
+\centering
+\includegraphics[width=0.9\linewidth,height=0.75\textheight,keepaspectratio]{images/trash_dataset.png}
+\\[-2pt]
+{\scriptsize Class distribution used in this study.}
 \end{frame}
 
 \begin{frame}{Method Overview: Traditional vs RAC}
@@ -138,6 +137,32 @@ S_m^{kde}(c)=\frac{S_m(c)}{\tilde\rho_m(c)}
 {\tiny Density-normalization motivation follows \cite{yuan2021novel,amer2025effective,wkeglarczyk2018kernel}.}
 \end{frame}
 
+\begin{frame}{DNDS Variants: Detailed Formulas}
+\scriptsize
+For modality $m$, query $q$, and class $c$, define IDW base score:
+\[
+S_m(c)=\sum_{i\in\mathcal{N}^{(m)}_{k_{vote}}(q),\,y_i=c}\frac{1}{d_i^{(m)}+\epsilon}
+\]
+
+\textbf{Global DNDS}
+\[
+\rho_m(c)=\frac{N_m(c)}{\sum_{c'}N_m(c')},\qquad
+S_m^{global}(c)=\frac{S_m(c)}{\rho_m(c)}
+\]
+
+\textbf{Local DNDS}
+\[
+\rho_m^{local}(c)=\frac{\left|\left\{i\in\mathcal{N}^{(m)}_{K_{density}}(q):y_i=c\right\}\right|}{K_{density}},\qquad
+S_m^{local}(c)=\frac{S_m(c)}{\rho_m^{local}(c)}
+\]
+
+\textbf{KDE DNDS}
+\[
+\tilde{\rho}_m(c)=\sum_{j:y_j=c}\exp\!\left(-\frac{\left(d_j^{(m)}\right)^2}{2h^2}\right),\qquad
+S_m^{kde}(c)=\frac{S_m(c)}{\tilde{\rho}_m(c)}
+\]
+\end{frame}
+
 \begin{frame}{Experimental Setup}
 \small
 \begin{columns}[T]
@@ -200,6 +225,8 @@ Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
   \item Best effectiveness: \textbf{Global DNDS} (+4.01 Macro-F1).
   \item Best speed: \textbf{Traditional} (1.46 ms latency).
 \end{itemize}
+\vspace{2pt}
+{\tiny Related RAC context: \cite{li2024kra,long2022retrieval,lakatos2025investigating}.}
 \end{frame}
 
 \begin{frame}{Per-Class Improvements and Efficiency Trade-off: Figures}
@@ -221,31 +248,28 @@ Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
 
 \begin{frame}{Per-Class Improvements and Efficiency Trade-off: Takeaways}
 \begin{itemize}
-  \item RAC improves Macro-F1, but costs latency.
+  \item RAC improves Macro-F1, but costs latency \cite{li2024kra}.
   \item Green can be over-penalized due to compact clusters \cite{yan2009studies}.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Robustness Under Imbalance: Figures}
-\begin{columns}[T]
-  \begin{column}{0.5\textwidth}
-    \centering
-    \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/f1_vs_imbalance.png}
-    \\[-2pt]
-    {\scriptsize All classes: F1 vs imbalance ratio}
-  \end{column}
-  \begin{column}{0.5\textwidth}
-    \centering
-    \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/f1_vs_minority-imbalance.png}
-    \\[-2pt]
-    {\scriptsize Minority classes (Green, TTR)}
-  \end{column}
-\end{columns}
+\begin{frame}{Robustness Under Imbalance: All Classes}
+\centering
+\includegraphics[width=0.92\linewidth,height=0.72\textheight,keepaspectratio]{images/f1_vs_imbalance.png}
+\\[-2pt]
+{\scriptsize All classes: F1 vs imbalance ratio}
+\end{frame}
+
+\begin{frame}{Robustness Under Imbalance: Minority Classes}
+\centering
+\includegraphics[width=0.92\linewidth,height=0.72\textheight,keepaspectratio]{images/f1_vs_minority-imbalance.png}
+\\[-2pt]
+{\scriptsize Minority classes (Green, TTR)}
 \end{frame}
 
 \begin{frame}{Robustness Under Imbalance: Takeaways}
 \begin{itemize}
-  \item Global and KDE DNDS degrade more gracefully under skew.
+  \item Global and KDE DNDS degrade more gracefully under skew \cite{long2022retrieval,lakatos2025investigating}.
   \item KDE DNDS retains minority-class F1 slightly better.
 \end{itemize}
 \end{frame}
@@ -262,6 +286,7 @@ Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
       \item All RAC variants improve as DB size increases.
       \item New data is usable immediately after insertion.
       \item Suitable for incremental deployment.
+      \item Retrieval-augmented pipelines naturally benefit from richer neighbor pools \cite{li2024kra}.
     \end{itemize}
   \end{column}
 \end{columns}
@@ -272,20 +297,20 @@ Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
 \textbf{Strengths}
 \begin{itemize}
   \item Improves Macro-F1 without heavy end-to-end retraining.
-  \item More robust than traditional fusion under imbalance.
+  \item More robust than traditional fusion under imbalance \cite{long2022retrieval,lakatos2025investigating}.
 \end{itemize}
 
 \textbf{Limitations}
 \begin{itemize}
   \item Higher inference latency from retrieval/scoring.
   \item Local DNDS is sensitive to $K_{density}$.
-  \item Ceiling depends on embedding quality.
+  \item Ceiling depends on embedding quality \cite{abimbola2026open,islam2026learning,li2025iris}.
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Conclusion}
 \begin{itemize}
-  \item RAC is a strong alternative to supervised multimodal fusion.
+  \item RAC is a strong alternative to supervised multimodal fusion \cite{li2024kra,lakatos2025investigating}.
   \item \textbf{Global DNDS}: best overall on this dataset.
   \item \textbf{KDE DNDS}: better retention under severe skew.
   \item Traditional models remain best for strict low latency.
