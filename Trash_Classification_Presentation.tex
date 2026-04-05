@@ -196,46 +196,48 @@ Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Per-Class Improvements and Efficiency Trade-off}
+\begin{frame}{Per-Class Improvements and Efficiency Trade-off: Figures}
 \begin{columns}[T]
-  \begin{column}{0.5\textwidth}
+  \begin{column}{0.7\textwidth}
     \centering
-    \includegraphics[width=\linewidth,height=0.30\textheight]{images/per_class_f1_delta.png}
+    \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/per_class_f1_delta.png}
     \\[-2pt]
     {\scriptsize Per-class F1 delta (RAC vs traditional)}
   \end{column}
-  \begin{column}{0.5\textwidth}
+  \begin{column}{0.7\textwidth}
     \centering
-    \includegraphics[width=\linewidth,height=0.30\textheight]{images/effectiveness_vs_efficiency.png}
+    \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/effectiveness_vs_efficiency.png}
     \\[-2pt]
     {\scriptsize Effectiveness vs efficiency frontier}
   \end{column}
 \end{columns}
-\vspace{4pt}
-\small
+\end{frame}
+
+\begin{frame}{Per-Class Improvements and Efficiency Trade-off: Takeaways}
 \begin{itemize}
   \item RAC improves Macro-F1, but costs latency.
   \item Green can be over-penalized due to compact clusters \cite{yan2009studies}.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Robustness Under Imbalance}
+\begin{frame}{Robustness Under Imbalance: Figures}
 \begin{columns}[T]
-  \begin{column}{0.5\textwidth}
+  \begin{column}{0.4\textwidth}
     \centering
-    \includegraphics[width=\linewidth,height=0.30\textheight]{images/f1_vs_imbalance.png}
+    \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/f1_vs_imbalance.png}
     \\[-2pt]
     {\scriptsize All classes: F1 vs imbalance ratio}
   \end{column}
-  \begin{column}{0.5\textwidth}
+  \begin{column}{0.61\textwidth}
     \centering
-    \includegraphics[width=\linewidth,height=0.30\textheight]{images/f1_vs_minority-imbalance.png}
+    \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/f1_vs_minority-imbalance.png}
     \\[-2pt]
     {\scriptsize Minority classes (Green, TTR)}
   \end{column}
 \end{columns}
-\vspace{4pt}
-\small
+\end{frame}
+
+\begin{frame}{Robustness Under Imbalance: Takeaways}
 \begin{itemize}
   \item Global and KDE DNDS degrade more gracefully under skew.
   \item KDE DNDS retains minority-class F1 slightly better.
