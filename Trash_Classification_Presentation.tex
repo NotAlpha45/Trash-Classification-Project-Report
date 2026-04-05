@@ -1,0 +1,297 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning,shapes.geometric}
+
+\title[Inference vs Retrieval]{Inference vs Retrieval\\for Multimodal Garbage Classification}
+\subtitle{Evaluating Traditional Models and Novel DNDS Heuristics}
+\author{Maheen Hoque \and Arman Hossain Dipu Khan \and Lila Sanjay Kumar Gorlie}
+\institute{University of Calgary}
+\date{April 2026}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Motivation}
+\begin{frame}{Problem Motivation}
+\begin{itemize}
+  \item Automated sorting benefits from multimodal image+text signals \cite{alexakis2025enhanced}.
+  \item Supervised pipelines degrade under imbalance and shift \cite{islam2026learning}.
+  \item RAC uses neighbor evidence at inference time \cite{li2024kra}.
+  \item \textbf{DNDS} reweights RAC scores by class density to reduce majority bias.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Research Questions}
+\begin{enumerate}
+  \item Does DNDS beat traditional multimodal inference?
+  \item Is DNDS robust under severe imbalance?
+  \item Does DNDS improve as database size grows?
+  \item Which DNDS variant is best overall?
+\end{enumerate}
+\vspace{4pt}
+\textbf{Dataset:} 16,957 samples across 4 classes (Black, Blue, Green, TTR) \cite{cazarin2025garbage}.
+\end{frame}
+
+\section{Data and Methods}
+\begin{frame}{Dataset and Class Imbalance}
+\begin{columns}[T]
+  \begin{column}{0.52\textwidth}
+    \begin{itemize}
+      \item Black: 3459
+      \item Blue: 6720
+      \item Green: 3492
+      \item TTR: 3286
+      \item Blue is about 1.9x larger than minority classes.
+      \item Skew risks majority-biased decision boundaries and retrieval votes.
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/trash_dataset.png}
+    \\[-2pt]
+    {\scriptsize Class distribution used in this study.}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Method Overview: Traditional vs RAC}
+\centering
+\scriptsize
+\begin{tikzpicture}[
+  node distance=8mm and 6mm,
+  box/.style={draw, rounded corners, align=center, minimum width=2.2cm, minimum height=0.75cm, fill=blue!8},
+  tinybox/.style={draw, rounded corners, align=center, minimum width=1.9cm, minimum height=0.75cm, fill=green!8},
+  arrow/.style={-Latex, thick}
+]
+
+\node[box] (input) {Query sample\\(image + text label)};
+
+\node[box, below left=of input] (imgModel) {MobileNetV3\\classifier};
+\node[box, below right=of input] (txtModel) {DistilBERT\\classifier};
+\node[box, below=of $(imgModel)!0.5!(txtModel)$] (fuse) {Fusion\\$W_f=\alpha W_t+(1-\alpha)W_i$};
+\node[box, below=of fuse] (predTrad) {Prediction\\$\hat y=\mathrm{softmax}(W_f)$};
+
+\node[tinybox, right=12mm of txtModel] (embed) {OpenCLIP +\\MiniLM embeddings};
+\node[tinybox, below=of embed] (retrieve) {kNN retrieval\\(ChromaDB)};
+\node[tinybox, below=of retrieve] (heuristic) {Majority/IDW/\\Global, Local, KDE DNDS};
+\node[tinybox, below=of heuristic] (predRac) {RAC prediction\\$\hat y=\arg\max_c S_f(c)$};
+
+\draw[arrow] (input) -- (imgModel);
+\draw[arrow] (input) -- (txtModel);
+\draw[arrow] (imgModel) -- (fuse);
+\draw[arrow] (txtModel) -- (fuse);
+\draw[arrow] (fuse) -- (predTrad);
+
+\draw[arrow] (input.east) -- ++(5mm,0) |- (embed.west);
+\draw[arrow] (embed) -- (retrieve);
+\draw[arrow] (retrieve) -- (heuristic);
+\draw[arrow] (heuristic) -- (predRac);
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{DNDS Heuristics (Core Idea)}
+\small
+Base score (IDW), for modality $m$ and class $c$:
+\[
+S_m(c)=\sum_{i\in \mathcal{N}^{(m)}_{k_{vote}}(q),\, y_i=c}\frac{1}{d_i^{(m)}+\epsilon}
+\]
+
+Density-normalized variants:
+\[
+S_m^{global}(c)=\frac{S_m(c)}{\rho_m(c)},\quad
+S_m^{local}(c)=\frac{S_m(c)}{\rho_m^{local}(c)},\quad
+S_m^{kde}(c)=\frac{S_m(c)}{\tilde\rho_m(c)}
+\]
+
+\vspace{-6pt}
+\begin{itemize}
+  \item Global: divide by global class density.
+  \item Local: divide by neighborhood density.
+  \item KDE: smooth density with Gaussian weighting.
+\end{itemize}
+\vspace{2pt}
+{\tiny Density-normalization motivation follows \cite{yuan2021novel,amer2025effective,wkeglarczyk2018kernel}.}
+\end{frame}
+
+\begin{frame}{Experimental Setup}
+\small
+\begin{columns}[T]
+  \begin{column}{0.52\textwidth}
+    \textbf{Phase 1 (Traditional)}
+    \begin{itemize}
+      \item MobileNetV3 + FC head
+      \item DistilBERT + linear head
+      \item Fusion by $\alpha$
+      \item Metrics: Macro-F1, latency
+    \end{itemize}
+
+    \textbf{Phase 2 (RAC)}
+    \begin{itemize}
+      \item Image/text embeddings in ChromaDB
+      \item $k_{vote}=10$, default $\alpha=0.5$
+      \item 5 heuristics: Majority, IDW, Global/Local/KDE
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+    \textbf{Stress Tests}
+    \begin{itemize}
+      \item Imbalance: 2:1 to 10:1 majority:minority
+      \item Continual learning: DB size 10\% to 100\%
+      \item KDE ablation on $h \in [0,1]$
+    \end{itemize}
+
+    \vspace{4pt}
+    \textbf{Embedding backbones}
+    \begin{itemize}
+      \item OpenCLIP ViT-B-32 (image)
+      \item All-MiniLM-L6-v2 (text)
+    \end{itemize}
+  \end{column}
+\end{columns}
+\vspace{2pt}
+{\tiny Models/embeddings from \cite{howard2019searching,sanh2019distilbert,cazarin2025multimodal,abimbola2026open}.}
+\end{frame}
+
+\section{Results}
+\begin{frame}{Main Quantitative Results (Test Set)}
+\scriptsize
+\centering
+\begin{tabular}{lccccc}
+\toprule
+Method & Acc. & $\Delta$Acc. & Macro-F1 & $\Delta$F1 & Latency (ms) \\
+\midrule
+Traditional & 81.14 & +0.00 & 80.80 & +0.00 & \textbf{1.46} \\
+Global-DNDS & \textbf{85.25} & \textbf{+4.11} & \textbf{84.81} & \textbf{+4.01} & 412.54 \\
+KDE-DNDS & 85.23 & +4.08 & 84.80 & +3.99 & 925.54 \\
+IDW & 83.72 & +2.58 & 83.19 & +2.39 & 123.72 \\
+Majority Vote & 82.94 & +1.80 & 82.36 & +1.56 & 125.34 \\
+Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\normalsize
+\begin{itemize}
+  \item Best effectiveness: \textbf{Global DNDS} (+4.01 Macro-F1).
+  \item Best speed: \textbf{Traditional} (1.46 ms latency).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Per-Class Improvements and Efficiency Trade-off}
+\begin{columns}[T]
+  \begin{column}{0.5\textwidth}
+    \centering
+    \includegraphics[width=\linewidth,height=0.30\textheight]{images/per_class_f1_delta.png}
+    \\[-2pt]
+    {\scriptsize Per-class F1 delta (RAC vs traditional)}
+  \end{column}
+  \begin{column}{0.5\textwidth}
+    \centering
+    \includegraphics[width=\linewidth,height=0.30\textheight]{images/effectiveness_vs_efficiency.png}
+    \\[-2pt]
+    {\scriptsize Effectiveness vs efficiency frontier}
+  \end{column}
+\end{columns}
+\vspace{4pt}
+\small
+\begin{itemize}
+  \item RAC improves Macro-F1, but costs latency.
+  \item Green can be over-penalized due to compact clusters \cite{yan2009studies}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Robustness Under Imbalance}
+\begin{columns}[T]
+  \begin{column}{0.5\textwidth}
+    \centering
+    \includegraphics[width=\linewidth,height=0.30\textheight]{images/f1_vs_imbalance.png}
+    \\[-2pt]
+    {\scriptsize All classes: F1 vs imbalance ratio}
+  \end{column}
+  \begin{column}{0.5\textwidth}
+    \centering
+    \includegraphics[width=\linewidth,height=0.30\textheight]{images/f1_vs_minority-imbalance.png}
+    \\[-2pt]
+    {\scriptsize Minority classes (Green, TTR)}
+  \end{column}
+\end{columns}
+\vspace{4pt}
+\small
+\begin{itemize}
+  \item Global and KDE DNDS degrade more gracefully under skew.
+  \item KDE DNDS retains minority-class F1 slightly better.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Continual Learning with Growing Database}
+\begin{columns}[T]
+  \begin{column}{0.56\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/continual_learning.png}
+  \end{column}
+  \begin{column}{0.44\textwidth}
+    \small
+    \begin{itemize}
+      \item All RAC variants improve as DB size increases.
+      \item New data is usable immediately after insertion.
+      \item Suitable for incremental deployment.
+    \end{itemize}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\section{Discussion and Conclusion}
+\begin{frame}{Discussion: Strengths and Limitations}
+\textbf{Strengths}
+\begin{itemize}
+  \item Improves Macro-F1 without heavy end-to-end retraining.
+  \item More robust than traditional fusion under imbalance.
+\end{itemize}
+
+\textbf{Limitations}
+\begin{itemize}
+  \item Higher inference latency from retrieval/scoring.
+  \item Local DNDS is sensitive to $K_{density}$.
+  \item Ceiling depends on embedding quality.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+\begin{itemize}
+  \item RAC is a strong alternative to supervised multimodal fusion.
+  \item \textbf{Global DNDS}: best overall on this dataset.
+  \item \textbf{KDE DNDS}: better retention under severe skew.
+  \item Traditional models remain best for strict low latency.
+\end{itemize}
+
+\vspace{8pt}
+\centering
+\textbf{Takeaway:} Effectiveness vs efficiency should be selected by deployment constraints, not accuracy alone.
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+\scriptsize
+\bibliographystyle{IEEEbib}
+\bibliography{strings,refs}
+\end{frame}
+
+\end{document}
