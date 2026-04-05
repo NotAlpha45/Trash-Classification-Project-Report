@@ -77,34 +77,40 @@
 \centering
 \scriptsize
 \begin{tikzpicture}[
-  node distance=8mm and 6mm,
-  box/.style={draw, rounded corners, align=center, minimum width=2.2cm, minimum height=0.75cm, fill=blue!8},
-  tinybox/.style={draw, rounded corners, align=center, minimum width=1.9cm, minimum height=0.75cm, fill=green!8},
+  querybox/.style={draw, rounded corners, align=center, text width=3.1cm, minimum height=0.9cm, fill=blue!8},
+  modelbox/.style={draw, rounded corners, align=center, text width=2.1cm, minimum height=0.95cm, fill=green!8},
+  branchbox/.style={draw, rounded corners, align=center, text width=2.2cm, minimum height=1.05cm, fill=green!8},
+  predbox/.style={draw, rounded corners, align=center, text width=2.6cm, minimum height=0.95cm, fill=green!8},
+  diamondbox/.style={draw, diamond, aspect=2.25, align=center, inner sep=1pt, text width=1.8cm, minimum height=0.95cm, fill=orange!12},
+  labelbox/.style={font=\bfseries\scriptsize},
   arrow/.style={-Latex, thick}
 ]
 
-\node[box] (input) {Query sample\\(image + text label)};
+\node[querybox] (input) at (0,0) {Query sample\\(image + text label)};
 
-\node[box, below left=of input] (imgModel) {MobileNetV3\\classifier};
-\node[box, below right=of input] (txtModel) {DistilBERT\\classifier};
-\node[box, below=of $(imgModel)!0.5!(txtModel)$] (fuse) {Fusion\\$W_f=\alpha W_t+(1-\alpha)W_i$};
-\node[box, below=of fuse] (predTrad) {Prediction\\$\hat y=\mathrm{softmax}(W_f)$};
+\node[labelbox] at (-3.6,-1.0) {Traditional};
+\node[modelbox] (imgModel) at (-4.9,-2.3) {Image model\\MobileNetV3};
+\node[modelbox] (txtModel) at (-2.3,-2.3) {Text model\\DistilBERT};
+\node[diamondbox] (tradFuse) at (-3.6,-3.95) {Fusion\\$W_f$};
+\node[predbox] (predTrad) at (-3.6,-5.35) {Prediction\\$\hat y=\mathrm{softmax}(W_f)$};
 
-\node[tinybox, right=12mm of txtModel] (embed) {OpenCLIP +\\MiniLM embeddings};
-\node[tinybox, below=of embed] (retrieve) {kNN retrieval\\(ChromaDB)};
-\node[tinybox, below=of retrieve] (heuristic) {Majority/IDW/\\Global, Local, KDE DNDS};
-\node[tinybox, below=of heuristic] (predRac) {RAC prediction\\$\hat y=\arg\max_c S_f(c)$};
+\node[labelbox] at (3.4,-1.0) {RAC};
+\node[branchbox] (imgRac) at (1.9,-2.3) {Image branch\\embed + kNN\\score $S_i(c)$};
+\node[branchbox] (txtRac) at (4.9,-2.3) {Text branch\\embed + kNN\\score $S_t(c)$};
+\node[diamondbox] (racFuse) at (3.4,-3.95) {Fusion\\$S_f(c)$};
+\node[predbox] (predRac) at (3.4,-5.35) {Prediction\\$\hat y=\arg\max_c S_f(c)$};
 
-\draw[arrow] (input) -- (imgModel);
-\draw[arrow] (input) -- (txtModel);
-\draw[arrow] (imgModel) -- (fuse);
-\draw[arrow] (txtModel) -- (fuse);
-\draw[arrow] (fuse) -- (predTrad);
+\draw[arrow] (input.south west) to[bend right=18] (imgModel.north);
+\draw[arrow] (input.south) to[bend right=8] (txtModel.north);
+\draw[arrow] (imgModel.south east) -- (tradFuse.north west);
+\draw[arrow] (txtModel.south west) -- (tradFuse.north east);
+\draw[arrow] (tradFuse) -- (predTrad);
 
-\draw[arrow] (input.east) -- ++(5mm,0) |- (embed.west);
-\draw[arrow] (embed) -- (retrieve);
-\draw[arrow] (retrieve) -- (heuristic);
-\draw[arrow] (heuristic) -- (predRac);
+\draw[arrow] (input.south) to[bend left=8] (imgRac.north);
+\draw[arrow] (input.south east) to[bend left=18] (txtRac.north);
+\draw[arrow] (imgRac.south east) -- (racFuse.north west);
+\draw[arrow] (txtRac.south west) -- (racFuse.north east);
+\draw[arrow] (racFuse) -- (predRac);
 \end{tikzpicture}
 \end{frame}
 
@@ -198,13 +204,13 @@ Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
 
 \begin{frame}{Per-Class Improvements and Efficiency Trade-off: Figures}
 \begin{columns}[T]
-  \begin{column}{0.7\textwidth}
+  \begin{column}{0.5\textwidth}
     \centering
     \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/per_class_f1_delta.png}
     \\[-2pt]
     {\scriptsize Per-class F1 delta (RAC vs traditional)}
   \end{column}
-  \begin{column}{0.7\textwidth}
+  \begin{column}{0.5\textwidth}
     \centering
     \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/effectiveness_vs_efficiency.png}
     \\[-2pt]
@@ -222,13 +228,13 @@ Local-DNDS & 82.18 & +1.04 & 81.76 & +0.96 & 347.57 \\
 
 \begin{frame}{Robustness Under Imbalance: Figures}
 \begin{columns}[T]
-  \begin{column}{0.4\textwidth}
+  \begin{column}{0.5\textwidth}
     \centering
     \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/f1_vs_imbalance.png}
     \\[-2pt]
     {\scriptsize All classes: F1 vs imbalance ratio}
   \end{column}
-  \begin{column}{0.61\textwidth}
+  \begin{column}{0.5\textwidth}
     \centering
     \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{images/f1_vs_minority-imbalance.png}
     \\[-2pt]
